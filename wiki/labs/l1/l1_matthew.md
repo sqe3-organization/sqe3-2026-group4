@@ -1,65 +1,65 @@
-# Laboratorio 1 — Matthew: Wiki de proyectos
+# Lab 1 — Matthew: Project wikis
 
-[← Volver al laboratorio del grupo](l1.md)
+[← Back to the group lab](l1.md)
 
-Voy a probar cómo se crean, consultan, editan y eliminan las páginas de la wiki de un proyecto.
+I will test how project wiki pages are created, retrieved, edited and deleted.
 
-## Contenido
+## Contents
 
-- [Actividad 2: Investigación y exploración de Wiki](#actividad-2)
-- [Actividad 3: Caso de uso](#actividad-3)
-- [Actividad 4: Criterios y casos LLTC](#actividad-4)
-- [Actividad 5: Clasificación de las pruebas](#actividad-5)
-- [Fuentes de la característica](#fuentes)
+- [Activity 2: Wiki research and exploration](#actividad-2)
+- [Activity 3: Use case](#actividad-3)
+- [Activity 4: Criteria and LLTC cases](#actividad-4)
+- [Activity 5: Test classification](#actividad-5)
+- [Feature sources](#fuentes)
 
 ---
 
 <a id="actividad-2"></a>
 
-## Actividad #2: Investigación y pruebas exploratorias
+## Activity #2: Research and exploratory testing
 
-### 2.1 Descripción de la característica
+### 2.1 Feature description
 
-La wiki mantiene documentación en un repositorio Git separado del código del proyecto. Para crear, editar y eliminar páginas se requiere un rol Developer, Maintainer u Owner. Referencia: [Wiki de GitLab](https://docs.gitlab.com/user/project/wiki/).
+The wiki stores documentation in a Git repository separate from the project code. Creating, editing and deleting pages requires a Developer, Maintainer or Owner role. Reference: [GitLab wiki](https://docs.gitlab.com/user/project/wiki/).
 
-Las pruebas siguen este recorrido:
+The tests follow this sequence:
 
-| Paso | Método | Endpoint relativo a `/api/v4` | Propósito |
+| Step | Method | Endpoint relative to `/api/v4` | Purpose |
 | --- | --- | --- | --- |
-| 1 | POST | `/projects/:id/wikis` | Crear una página. |
-| 2 | GET | `/projects/:id/wikis/:slug` | Recuperarla. |
-| 3 | PUT | `/projects/:id/wikis/:slug` | Actualizarla. |
-| 4 | GET | `/projects/:id/wikis?with_content=true` | Buscarla en la lista con contenido. |
-| 5 | DELETE | `/projects/:id/wikis/:slug` | Eliminarla. |
+| 1 | POST | `/projects/:id/wikis` | Create a page. |
+| 2 | GET | `/projects/:id/wikis/:slug` | Retrieve it. |
+| 3 | PUT | `/projects/:id/wikis/:slug` | Update it. |
+| 4 | GET | `/projects/:id/wikis?with_content=true` | Find it in the list with content. |
+| 5 | DELETE | `/projects/:id/wikis/:slug` | Delete it. |
 
-La API requiere `title` y `content` al crear; para actualizar requiere al menos uno de ellos. El formato predeterminado es `markdown`. Usaré el `slug` que devuelva la API y lo codificaré al incluirlo en la URL. Referencia: [Project wikis API](https://docs.gitlab.com/api/wikis/).
+The API requires `title` and `content` when creating a page; updates require at least one of them. The default format is `markdown`. I will use the `slug` returned by the API and encode it when including it in the URL. Reference: [Project wikis API](https://docs.gitlab.com/api/wikis/).
 
-### 2.2 Configuración de la característica
+### 2.2 Feature setup
 
-Parto de la [autenticación del grupo](l1.md#autenticacion). Para estos casos uso un proyecto privado con Wiki habilitada y las siguientes variables adicionales:
+I start with the [group authentication](l1.md#autenticacion). For these cases I use a private project with Wiki enabled and the following additional variables:
 
-| Variable | Uso en las pruebas de Wiki |
+| Variable | Use in Wiki tests |
 | --- | --- |
-| `token_editor` | Token con alcance `api` de un miembro Developer o superior. Se usa como `access_token` al crear, consultar, editar y eliminar páginas. |
-| `token_reader` | Token de un miembro Reporter con acceso de lectura y sin escritura. Confirmar sus permisos antes del caso de autorización. |
-| `wiki_slug` | Slug original devuelto por la API, para comparar las respuestas. |
-| `wiki_slug_url` | El mismo slug, codificado una sola vez para incluirlo en la URL. |
+| `token_editor` | Token with `api` scope belonging to a Developer or higher. Used as `access_token` when creating, retrieving, editing and deleting pages. |
+| `token_reader` | Token belonging to a Reporter with read but no write access. Confirm its permissions before the authorization case. |
+| `wiki_slug` | Original slug returned by the API, used to compare responses. |
+| `wiki_slug_url` | The same slug, encoded once for inclusion in the URL. |
 
-Las demás variables están en el documento del grupo.
+The remaining variables are in the group document.
 
-### 2.3 Pruebas exploratorias
+### 2.3 Exploratory testing
 
-**Exploración y capturas:** pendientes. Estos son los pasos que voy a seguir:
+**Exploration and screenshots:** pending. These are the steps I will follow:
 
-| Exploración pendiente | Acción y datos propuestos | Evidencia que se debe registrar |
+| Pending exploration | Proposed action and data | Evidence to record |
 | --- | --- | --- |
-| Crear | Abrir Wiki, crear `sqe3-wiki-<run_id>` con contenido `Guía inicial`. | Captura de Network con método, URL, cuerpo y respuesta. |
-| Consultar | Abrir la página y recuperar su `slug` mediante REST. | Comparación del título y contenido visibles con el JSON. |
-| Editar | Cambiar el contenido a `Guía actualizada`, conservando el título. | Petición de edición y consulta posterior que confirme persistencia. |
-| Listar | Consultar páginas con y sin `with_content=true`. | Presencia de la página y diferencia del campo `content`. |
-| Eliminar | Borrar únicamente la página creada para la exploración. | Respuesta de eliminación y consulta posterior. |
+| Create | Open Wiki and create `sqe3-wiki-<run_id>` with content `Guía inicial`. | Network screenshot showing method, URL, body and response. |
+| Retrieve | Open the page and retrieve its `slug` using REST. | Comparison of the visible title and content with the JSON. |
+| Edit | Change the content to `Guía actualizada`, keeping the title. | Edit request and subsequent retrieval confirming persistence. |
+| List | List pages with and without `with_content=true`. | Presence of the page and difference in the `content` field. |
+| Delete | Delete only the page created for exploration. | Deletion response and subsequent retrieval. |
 
-Cuerpo de la solicitud de creación:
+Create request body:
 
 ```json
 {
@@ -69,7 +69,7 @@ Cuerpo de la solicitud de creación:
 }
 ```
 
-Cuerpo de la solicitud de edición:
+Edit request body:
 
 ```json
 {
@@ -77,386 +77,386 @@ Cuerpo de la solicitud de edición:
 }
 ```
 
-En DevTools registraré la petición que use la interfaz y la compararé con el endpoint REST v4; pueden usar rutas o formatos distintos.
+In DevTools I will record the request used by the interface and compare it with the REST v4 endpoint; they may use different routes or formats.
 
 ---
 
 <a id="actividad-3"></a>
 
-## Actividad #3: Caso de uso
+## Activity #3: Use case
 
-### 3.1 Descripción del caso de uso
+### 3.1 Use case description
 
-**Historia de usuario:** Como integrante de un proyecto, quiero crear, consultar, actualizar y eliminar páginas de su wiki para mantener las instrucciones del equipo al día.
+**User story:** As a project member, I want to create, retrieve, update and delete wiki pages to keep the team instructions up to date.
 
-**Caso de uso:** Mantener una guía de instalación del proyecto.
+**Use case:** Maintain a project installation guide.
 
-**Actor:** Miembro autenticado con permiso de escritura sobre la wiki.
+**Actor:** Authenticated member with write permission on the wiki.
 
-**Precondiciones:** Proyecto de pruebas accesible, Wiki habilitada, token válido y título exclusivo de la ejecución.
+**Preconditions:** Accessible test project, Wiki enabled, valid token and a title unique to the run.
 
-| Paso | Interacción | Comprobación propuesta |
+| Step | Interaction | Proposed check |
 | --- | --- | --- |
-| 1 | Crear la guía con instrucciones iniciales. | Guardar el `slug` de la nueva página. |
-| 2 | Consultar la guía por ese `slug`. | Comparar título y contenido con los datos enviados. |
-| 3 | Actualizar las instrucciones sin cambiar el título. | Consultar nuevamente y comprobar el contenido actualizado. |
-| 4 | Listar las páginas del proyecto. | Encontrar la guía por su `slug`. |
-| 5 | Eliminar la guía de prueba. | Comprobar que ya no se puede recuperar ni aparece en la lista. |
+| 1 | Create the guide with initial instructions. | Save the new page’s `slug`. |
+| 2 | Retrieve the guide by that `slug`. | Compare title and content with the submitted data. |
+| 3 | Update the instructions without changing the title. | Retrieve it again and check the updated content. |
+| 4 | List the project pages. | Find the guide by its `slug`. |
+| 5 | Delete the test guide. | Check that it can no longer be retrieved or found in the list. |
 
-**Resultado esperado:** La guía conserva los cambios mientras existe y deja de estar disponible después de eliminarla.
+**Expected result:** The guide retains changes while it exists and becomes unavailable after deletion.
 
-**Flujos alternos:** Rechazo de credenciales inválidas, campos requeridos ausentes, modificación sin permisos y operaciones sobre una página inexistente. Los casos se detallan en la actividad 4.
+**Alternative flows:** Rejection of invalid credentials, missing required fields, modification without permission and operations on a nonexistent page. The cases are detailed in activity 4.
 
 ---
 
 <a id="actividad-4"></a>
 
-## Actividad #4: Criterios de aceptación y casos de prueba
+## Activity #4: Acceptance criteria and test cases
 
-### 4.1 Criterios de aceptación
+### 4.1 Acceptance criteria
 
-Estos son los resultados esperados, tomando como referencia la [guía de estados HTTP de GitLab](https://docs.gitlab.com/api/rest/troubleshooting/). Los códigos que la documentación no precisa quedan por confirmar durante la exploración.
+These are the expected results, based on the [GitLab HTTP status guide](https://docs.gitlab.com/api/rest/troubleshooting/). Codes not specified in the documentation remain to be confirmed during exploration.
 
-#### Operación: Crear una página — `POST /projects/:id/wikis`
+#### Operation: Create a page — `POST /projects/:id/wikis`
 
-- **CA-WIKI-01 · Positivo:** Con credenciales y permisos adecuados, título exclusivo y contenido válido, crear la página devuelve `201` y permite recuperarla con los mismos datos.
-- **CA-WIKI-02 · Negativo:** Omitir `title` o `content`, en solicitudes separadas, impide crear la página. Se espera `400` por atributo requerido ausente.
-- **CA-WIKI-03 · Negativo:** Un token inválido impide crear, editar o eliminar páginas y devuelve `401`.
-- **CA-WIKI-04 · Positivo:** Crear con el formato omitido utiliza Markdown.
+- **CA-WIKI-01 · Positive:** With suitable credentials and permissions, a unique title and valid content, creating the page returns `201` and allows it to be retrieved with the same data.
+- **CA-WIKI-02 · Negative:** Omitting `title` or `content` in separate requests prevents page creation. A `400` is expected for a missing required attribute.
+- **CA-WIKI-03 · Negative:** An invalid token prevents creating, editing or deleting pages and returns `401`.
+- **CA-WIKI-04 · Positive:** Creating with the format omitted uses Markdown.
 
-#### Operación: Actualizar una página — `PUT /projects/:id/wikis/:slug`
+#### Operation: Update a page — `PUT /projects/:id/wikis/:slug`
 
-- **CA-WIKI-05 · Positivo:** Enviar únicamente `content` actualiza la página con `200`; una lectura posterior confirma el cambio y conserva el título.
-- **CA-WIKI-06 · Negativo:** Una actualización sin `title` ni `content` se rechaza y conserva el contenido anterior; el código específico debe confirmarse.
-- **CA-WIKI-07 · Negativo:** Actualizar un `slug` inexistente en un proyecto accesible devuelve `404` y no crea una página.
-- **CA-WIKI-08 · Autorización:** Un miembro que puede leer pero no escribir no puede editar ni eliminar la página. La página debe conservarse sin cambios. El código de rechazo queda por confirmar en la exploración.
+- **CA-WIKI-05 · Positive:** Sending only `content` updates the page with `200`; a subsequent read confirms the change and retains the title.
+- **CA-WIKI-06 · Negative:** An update without `title` or `content` is rejected and retains the previous content; the specific status code must be confirmed.
+- **CA-WIKI-07 · Negative:** Updating a nonexistent `slug` in an accessible project returns `404` and does not create a page.
+- **CA-WIKI-08 · Authorization:** A member who can read but not write cannot edit or delete the page. The page must remain unchanged. The rejection code remains to be confirmed during exploration.
 
-#### Operación: Consultar páginas — `GET /projects/:id/wikis[/:slug]`
+#### Operation: Retrieve pages — `GET /projects/:id/wikis[/:slug]`
 
-- **CA-WIKI-09 · Positivo:** Consultar una página existente devuelve `200` y sus datos; listar con `with_content=true` permite comprobar su contenido.
-- **CA-WIKI-10 · Negativo:** Consultar un `slug` inexistente en un proyecto accesible devuelve `404`.
-- **CA-WIKI-11 · Codificación:** Una página creada en una ruta anidada puede recuperarse codificando el `slug` completo, incluido `/` como `%2F`.
-- **CA-WIKI-12 · Límite:** En un proyecto preparado sin páginas, listar devuelve `200` y una lista vacía.
+- **CA-WIKI-09 · Positive:** Retrieving an existing page returns `200` and its data; listing with `with_content=true` allows its content to be checked.
+- **CA-WIKI-10 · Negative:** Retrieving a nonexistent `slug` in an accessible project returns `404`.
+- **CA-WIKI-11 · Encoding:** A page created at a nested path can be retrieved by encoding the entire `slug`, including `/` as `%2F`.
+- **CA-WIKI-12 · Boundary:** In a project prepared without pages, listing returns `200` and an empty list.
 
-#### Operación: Eliminar una página — `DELETE /projects/:id/wikis/:slug`
+#### Operation: Delete a page — `DELETE /projects/:id/wikis/:slug`
 
-- **CA-WIKI-13 · Positivo:** Eliminar una página existente devuelve `204` sin cuerpo; una consulta posterior devuelve `404` y la página no aparece al listar.
-- **CA-WIKI-14 · Negativo:** Eliminar un `slug` inexistente devuelve `404` sin afectar otras páginas.
+- **CA-WIKI-13 · Positive:** Deleting an existing page returns `204` without a body; a subsequent retrieval returns `404` and the page does not appear in the list.
+- **CA-WIKI-14 · Negative:** Deleting a nonexistent `slug` returns `404` without affecting other pages.
 
-#### Criterio E2E
+#### E2E criterion
 
-- **CA-WIKI-15 · E2E:** Crear, consultar, actualizar, listar, eliminar y volver a consultar demuestra el ciclo completo con los mismos datos y proyecto. La prueba limpia sus recursos aunque falle una comprobación intermedia.
+- **CA-WIKI-15 · E2E:** Creating, retrieving, updating, listing, deleting and retrieving again demonstrates the complete lifecycle with the same data and project. The test cleans up its resources even if an intermediate check fails.
 
-### 4.2 Prompt y procedimiento
+### 4.2 Prompt and procedure
 
-**Prompt para generar la lista base de escenarios:**
+**Prompt to generate the initial scenario list:**
 
-> Estoy preparando pruebas de la Wiki de proyectos de GitLab. A partir de la documentación oficial de esta funcionalidad (https://docs.gitlab.com/api/wikis/), propón una lista base de escenarios de prueba para crear, consultar, actualizar y eliminar páginas. Agrúpalos en positivos, negativos, boundary y E2E. Para cada escenario escribe un título claro y una descripción breve de lo que se quiere comprobar. Considera campos requeridos, permisos, recursos inexistentes y límites documentados. Evita escenarios repetidos y no inventes restricciones ni comportamientos; si algo necesita confirmarse mediante exploración, indícalo. La lista servirá como punto de partida para que yo filtre, corrija y valide cuáles escenarios aplican.
+> I am preparing tests for GitLab project wikis. Using the official documentation for this feature (https://docs.gitlab.com/api/wikis/), propose an initial list of test scenarios for creating, retrieving, updating and deleting pages. Group them into positive, negative, boundary and E2E scenarios. For each scenario, write a clear title and a brief description of what it checks. Consider required fields, permissions, nonexistent resources and documented limits. Avoid duplicate scenarios and do not invent restrictions or behavior; indicate anything that needs confirmation through exploration. The list will be a starting point for me to filter, correct and validate the applicable scenarios.
 
-**Procedimiento:**
+**Procedure:**
 
-1. Usar el prompt para obtener una primera lista de escenarios.
-2. Filtrar los escenarios repetidos o que no correspondan a las operaciones elegidas.
-3. Revisar los escenarios con la documentación y anotar las dudas para la exploración.
-4. Desarrollar los casos seleccionados con sus datos, pasos y resultados esperados.
+1. Use the prompt to obtain an initial list of scenarios.
+2. Filter out duplicate scenarios or those unrelated to the selected operations.
+3. Review the scenarios against the documentation and note questions for exploration.
+4. Develop the selected cases with their data, steps and expected results.
 
 <a id="casos-lltc"></a>
 
-### 4.3 Casos de prueba de bajo nivel (LLTC)
+### 4.3 Low-level test cases (LLTC)
 
-Los 19 casos están diseñados, pero aún no se han ejecutado. La preparación, los datos y la limpieza siguientes aplican a todos, salvo las condiciones particulares indicadas en cada caso. Las prioridades quedan pendientes de revisión con el equipo.
+The 19 cases have been designed but not yet executed. The following setup, data and cleanup apply to all cases except where individual conditions are stated. Priorities remain pending team review.
 
-**Preparación común:** configurar las variables de 2.2 y la autenticación del grupo. Usar `PRIVATE-TOKEN: {{token_editor}}` y, para solicitudes con cuerpo, `Content-Type: application/json`, salvo que el caso indique otro token. Las rutas parten de `{{base_url}}`.
+**Common setup:** configure the variables in 2.2 and group authentication. Use `PRIVATE-TOKEN: {{token_editor}}` and, for requests with a body, `Content-Type: application/json`, unless the case specifies another token. Paths start at `{{base_url}}`.
 
-**Datos de prueba:** `title = sqe3-wiki-{{run_id}}`, `content = Guía inicial` y `format = markdown`. Usar un `run_id` nuevo en cada ejecución de cada caso y comprobar que el título esté disponible. Cuando se necesite una página existente, crearla con `POST /projects/{{project_id}}/wikis`, comprobar `201` y guardar el `slug` como `wiki_slug`. Cada vez que se cree una página, guardar también su versión codificada en `wiki_slug_url`; conservar `wiki_slug` sin cambios para compararlo con el JSON. Para un `slug` inexistente, usar `ausente-{{run_id}}` y comprobar primero que su consulta devuelve `404`.
+**Test data:** `title = sqe3-wiki-{{run_id}}`, `content = Guía inicial` and `format = markdown`. Use a new `run_id` for each execution of each case and check that the title is available. When an existing page is needed, create it with `POST /projects/{{project_id}}/wikis`, check for `201` and save the `slug` as `wiki_slug`. Whenever a page is created, also save its encoded version as `wiki_slug_url`; keep `wiki_slug` unchanged for comparison with the JSON. For a nonexistent `slug`, use `ausente-{{run_id}}` and first check that retrieving it returns `404`.
 
-**Limpieza común:** al terminar cada caso, eliminar sus páginas con el token de editor, aunque falle una comprobación. Si el caso ya las eliminó, comprobar su ausencia. En los negativos, borrar cualquier página que se haya creado por error, siempre que pueda atribuirse al caso.
+**Common cleanup:** after each case, delete its pages with the editor token, even if a check fails. If the case already deleted them, check that they are absent. In negative cases, delete any page created by mistake if it can be attributed to the case.
 
-**Consultas de listas:** revisar todas las páginas de resultados antes de concluir que falta un registro. Las comparaciones de slugs se hacen con los valores originales, sin codificar.
+**List queries:** check every results page before concluding that an entry is missing. Compare slugs using their original, unencoded values.
 
-#### TC_WIKI_POST_001 — Crear una guía con datos válidos
+#### TC_WIKI_POST_001 — Create a guide with valid data
 
-**Criterio:** CA-WIKI-01<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-01<br>
+**Type:** Positive functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | POST `/projects/{{project_id}}/wikis` con `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; guardar `slug`; título, contenido y formato coinciden con los enviados. |
-| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; mismos título, contenido y formato. |
+| 1 | POST `/projects/{{project_id}}/wikis` with `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; save `slug`; title, content and format match those submitted. |
+| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; same title, content and format. |
 
-#### TC_WIKI_POST_002 — Rechazar creación sin título
+#### TC_WIKI_POST_002 — Reject creation without a title
 
-**Criterio:** CA-WIKI-02<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-02<br>
+**Type:** Negative functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Usar un proyecto donde nadie más modifique la wiki durante el caso, para poder comparar las listas.
+**Preconditions:** Environment in 2.2 configured and test title available. Use a project where nobody else modifies the wiki during the case, so the lists can be compared.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis`; guardar los slugs existentes. | HTTP `200`; lista de referencia guardada. |
-| 2 | POST `/projects/{{project_id}}/wikis` con `{"content":"Guía inicial","format":"markdown"}`. | HTTP `400`; respuesta de error. |
-| 3 | GET `/projects/{{project_id}}/wikis` y comparar slugs. | HTTP `200`; no se añadió ninguna página. |
+| 1 | GET `/projects/{{project_id}}/wikis`; save the existing slugs. | HTTP `200`; baseline list saved. |
+| 2 | POST `/projects/{{project_id}}/wikis` with `{"content":"Guía inicial","format":"markdown"}`. | HTTP `400`; error response. |
+| 3 | GET `/projects/{{project_id}}/wikis` and compare slugs. | HTTP `200`; no page was added. |
 
-#### TC_WIKI_POST_003 — Rechazar creación sin contenido
+#### TC_WIKI_POST_003 — Reject creation without content
 
-**Criterio:** CA-WIKI-02<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-02<br>
+**Type:** Negative functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | POST `/projects/{{project_id}}/wikis` con `{"title":"sqe3-wiki-{{run_id}}","format":"markdown"}`. | HTTP `400`; respuesta de error. |
-| 2 | GET `/projects/{{project_id}}/wikis`; buscar el título enviado. | HTTP `200`; no aparece una página con ese título. |
+| 1 | POST `/projects/{{project_id}}/wikis` with `{"title":"sqe3-wiki-{{run_id}}","format":"markdown"}`. | HTTP `400`; error response. |
+| 2 | GET `/projects/{{project_id}}/wikis`; look for the submitted title. | HTTP `200`; no page with that title appears. |
 
-#### TC_WIKI_POST_004 — Rechazar creación con token inválido
+#### TC_WIKI_POST_004 — Reject creation with an invalid token
 
-**Criterio:** CA-WIKI-03<br>
-**Tipo:** Autenticación negativa<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-03<br>
+**Type:** Negative authentication<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | Sustituir la cabecera por `PRIVATE-TOKEN: token-invalido-sqe3` y enviar POST `/projects/{{project_id}}/wikis` con `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `401`. |
-| 2 | Restaurar el token de editor y enviar GET `/projects/{{project_id}}/wikis`. | HTTP `200`; el título de prueba no aparece. |
+| 1 | Replace the header with `PRIVATE-TOKEN: token-invalido-sqe3` and send POST `/projects/{{project_id}}/wikis` with `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `401`. |
+| 2 | Restore the editor token and send GET `/projects/{{project_id}}/wikis`. | HTTP `200`; the test title does not appear. |
 
-#### TC_WIKI_POST_005 — Crear sin formato explícito
+#### TC_WIKI_POST_005 — Create without an explicit format
 
-**Criterio:** CA-WIKI-04<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-04<br>
+**Type:** Positive functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | POST `/projects/{{project_id}}/wikis` con `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial"}`. | HTTP `201`; guardar `slug`; `format` es `markdown`. |
-| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `content` es `Guía inicial` y `format` es `markdown`. |
+| 1 | POST `/projects/{{project_id}}/wikis` with `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial"}`. | HTTP `201`; save `slug`; `format` is `markdown`. |
+| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `content` is `Guía inicial` and `format` is `markdown`. |
 
-#### TC_WIKI_PUT_001 — Actualizar solo el contenido de una guía
+#### TC_WIKI_PUT_001 — Update only a guide’s content
 
-**Criterio:** CA-WIKI-05<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-05<br>
+**Type:** Positive functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `{"content":"Guía actualizada"}`. | HTTP `200`; el título se conserva. |
-| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `content` es `Guía actualizada` y el título es el original. |
+| 1 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `{"content":"Guía actualizada"}`. | HTTP `200`; the title is retained. |
+| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `content` is `Guía actualizada` and the title is the original. |
 
-#### TC_WIKI_PUT_002 — Rechazar actualización sin campos modificables
+#### TC_WIKI_PUT_002 — Reject an update without editable fields
 
-**Criterio:** CA-WIKI-06<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-06<br>
+**Type:** Negative functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; guardar título y contenido originales. |
-| 2 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `{}`. | Respuesta de rechazo; código exacto pendiente de confirmar en exploración. |
-| 3 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; título y contenido no cambiaron. |
+| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; save the original title and content. |
+| 2 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `{}`. | Rejection response; exact code pending confirmation during exploration. |
+| 3 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; title and content did not change. |
 
-#### TC_WIKI_PUT_003 — Rechazar actualización de página inexistente
+#### TC_WIKI_PUT_003 — Reject an update to a nonexistent page
 
-**Criterio:** CA-WIKI-07<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-07<br>
+**Type:** Negative functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Confirmar que `ausente-{{run_id}}` no existe.
+**Preconditions:** Environment in 2.2 configured and test title available. Confirm that `ausente-{{run_id}}` does not exist.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | PUT `/projects/{{project_id}}/wikis/ausente-{{run_id}}` con `{"content":"Guía actualizada"}`. | HTTP `404`. |
-| 2 | GET `/projects/{{project_id}}/wikis/ausente-{{run_id}}`. | HTTP `404`; no se creó una página. |
+| 1 | PUT `/projects/{{project_id}}/wikis/ausente-{{run_id}}` with `{"content":"Guía actualizada"}`. | HTTP `404`. |
+| 2 | GET `/projects/{{project_id}}/wikis/ausente-{{run_id}}`. | HTTP `404`; no page was created. |
 
-#### TC_WIKI_PUT_004 — Rechazar actualización con token inválido
+#### TC_WIKI_PUT_004 — Reject an update with an invalid token
 
-**Criterio:** CA-WIKI-03<br>
-**Tipo:** Autenticación negativa<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-03<br>
+**Type:** Negative authentication<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `{"content":"Cambio no autorizado"}` y `PRIVATE-TOKEN: token-invalido-sqe3`. | HTTP `401`. |
-| 2 | Restaurar el token de editor y enviar GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; título y contenido originales intactos. |
+| 1 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `{"content":"Cambio no autorizado"}` and `PRIVATE-TOKEN: token-invalido-sqe3`. | HTTP `401`. |
+| 2 | Restore the editor token and send GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; original title and content intact. |
 
-#### TC_WIKI_GET_001 — Consultar una guía recién creada
+#### TC_WIKI_GET_001 — Retrieve a newly created guide
 
-**Criterio:** CA-WIKI-09<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-09<br>
+**Type:** Positive functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `title` coincide con el enviado. |
-| 2 | Revisar `content`, `format` y `slug` del JSON. | Contenido `Guía inicial`, formato `markdown` y slug igual al guardado. |
+| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; `title` matches the submitted value. |
+| 2 | Check `content`, `format` and `slug` in the JSON. | Content `Guía inicial`, format `markdown` and slug equal to the saved value. |
 
-#### TC_WIKI_GET_002 — Incluir contenido al listar páginas
+#### TC_WIKI_GET_002 — Include content when listing pages
 
-**Criterio:** CA-WIKI-09<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-09<br>
+**Type:** Positive functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis?with_content=true`. | HTTP `200`; cuerpo de tipo lista. |
-| 2 | Localizar la entrada con `slug = wiki_slug`. | La entrada existe; `content` es `Guía inicial` y el título coincide. |
+| 1 | GET `/projects/{{project_id}}/wikis?with_content=true`. | HTTP `200`; list response body. |
+| 2 | Find the entry with `slug = wiki_slug`. | The entry exists; `content` is `Guía inicial` and the title matches. |
 
-#### TC_WIKI_GET_003 — Rechazar consulta de página inexistente
+#### TC_WIKI_GET_003 — Reject retrieval of a nonexistent page
 
-**Criterio:** CA-WIKI-10<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-10<br>
+**Type:** Negative functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Confirmar que `ausente-{{run_id}}` no existe.
+**Preconditions:** Environment in 2.2 configured and test title available. Confirm that `ausente-{{run_id}}` does not exist.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis/ausente-{{run_id}}`. | HTTP `404`; no se devuelve una página. |
+| 1 | GET `/projects/{{project_id}}/wikis/ausente-{{run_id}}`. | HTTP `404`; no page is returned. |
 
-#### TC_WIKI_GET_004 — Recuperar una guía dentro de una ruta anidada
+#### TC_WIKI_GET_004 — Retrieve a guide at a nested path
 
-**Criterio:** CA-WIKI-11<br>
-**Tipo:** Funcional positivo / codificación<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-11<br>
+**Type:** Positive functional / encoding<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | POST `/projects/{{project_id}}/wikis` con `{"title":"manual-{{run_id}}/instalacion","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; guardar el slug de la ruta anidada. |
-| 2 | Codificar el slug completo, reemplazando `/` por `%2F`; enviar GET `/projects/{{project_id}}/wikis/<slug_codificado>`. | HTTP `200`; título y contenido corresponden a la página creada. |
+| 1 | POST `/projects/{{project_id}}/wikis` with `{"title":"manual-{{run_id}}/instalacion","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; save the nested path slug. |
+| 2 | Encode the full slug, replacing `/` with `%2F`; send GET `/projects/{{project_id}}/wikis/<slug_codificado>`. | HTTP `200`; title and content match the created page. |
 
-#### TC_WIKI_GET_005 — Listar una wiki sin páginas
+#### TC_WIKI_GET_005 — List a wiki without pages
 
-**Criterio:** CA-WIKI-12<br>
-**Tipo:** Límite: cero elementos<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-12<br>
+**Type:** Boundary: zero items<br>
+**Priority:** P2
 
-**Precondiciones:** Usar un proyecto de pruebas sin páginas; configurar su ID en `project_id`. No vaciar un proyecto compartido para preparar este caso.
+**Preconditions:** Use a test project without pages; set its ID in `project_id`. Do not empty a shared project to prepare this case.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis` sobre el proyecto vacío. | HTTP `200`; cuerpo exactamente `[]`. |
+| 1 | GET `/projects/{{project_id}}/wikis` on the empty project. | HTTP `200`; body exactly `[]`. |
 
-#### TC_WIKI_DELETE_001 — Eliminar una guía existente
+#### TC_WIKI_DELETE_001 — Delete an existing guide
 
-**Criterio:** CA-WIKI-13<br>
-**Tipo:** Funcional positivo<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-13<br>
+**Type:** Positive functional<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `204`; cuerpo vacío. |
+| 1 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `204`; empty body. |
 | 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `404`. |
-| 3 | GET `/projects/{{project_id}}/wikis`; buscar el slug eliminado. | HTTP `200`; el slug no aparece. |
+| 3 | GET `/projects/{{project_id}}/wikis`; look for the deleted slug. | HTTP `200`; the slug does not appear. |
 
-#### TC_WIKI_DELETE_002 — Rechazar eliminación de página inexistente
+#### TC_WIKI_DELETE_002 — Reject deletion of a nonexistent page
 
-**Criterio:** CA-WIKI-14<br>
-**Tipo:** Funcional negativo<br>
-**Prioridad:** P2
+**Criterion:** CA-WIKI-14<br>
+**Type:** Negative functional<br>
+**Priority:** P2
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`. Esta será la página de control. Confirmar que `ausente-{{run_id}}` no existe.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`. This will be the control page. Confirm that `ausente-{{run_id}}` does not exist.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
 | 1 | DELETE `/projects/{{project_id}}/wikis/ausente-{{run_id}}`. | HTTP `404`. |
-| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; la página de control mantiene título y contenido. |
+| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; the control page retains its title and content. |
 
-#### TC_WIKI_DELETE_003 — Rechazar eliminación con token inválido
+#### TC_WIKI_DELETE_003 — Reject deletion with an invalid token
 
-**Criterio:** CA-WIKI-03<br>
-**Tipo:** Autenticación negativa<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-03<br>
+**Type:** Negative authentication<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `PRIVATE-TOKEN: token-invalido-sqe3`. | HTTP `401`. |
-| 2 | Restaurar el token de editor y enviar GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; página y contenido intactos. |
+| 1 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `PRIVATE-TOKEN: token-invalido-sqe3`. | HTTP `401`. |
+| 2 | Restore the editor token and send GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; page and content intact. |
 
-#### TC_WIKI_E2E_001 — Mantener una guía durante su ciclo completo
+#### TC_WIKI_E2E_001 — Maintain a guide throughout its lifecycle
 
-**Criterio:** CA-WIKI-15<br>
-**Tipo:** E2E positivo<br>
-**Prioridad:** P0
+**Criterion:** CA-WIKI-15<br>
+**Type:** Positive E2E<br>
+**Priority:** P0
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible.
+**Preconditions:** Environment in 2.2 configured and test title available.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | POST `/projects/{{project_id}}/wikis` con `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; guardar el slug. |
-| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; contenido `Guía inicial`. |
-| 3 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `{"content":"Guía actualizada"}`. | HTTP `200`. |
-| 4 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; contenido `Guía actualizada`. |
-| 5 | GET `/projects/{{project_id}}/wikis?with_content=true`; localizar el slug. | HTTP `200`; página presente con contenido actualizado. |
-| 6 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `204`; cuerpo vacío. |
+| 1 | POST `/projects/{{project_id}}/wikis` with `{"title":"sqe3-wiki-{{run_id}}","content":"Guía inicial","format":"markdown"}`. | HTTP `201`; save the slug. |
+| 2 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; content `Guía inicial`. |
+| 3 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `{"content":"Guía actualizada"}`. | HTTP `200`. |
+| 4 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `200`; content `Guía actualizada`. |
+| 5 | GET `/projects/{{project_id}}/wikis?with_content=true`; find the slug. | HTTP `200`; page present with updated content. |
+| 6 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `204`; empty body. |
 | 7 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}`. | HTTP `404`. |
-| 8 | GET `/projects/{{project_id}}/wikis`; buscar el slug. | HTTP `200`; página ausente. |
+| 8 | GET `/projects/{{project_id}}/wikis`; look for the slug. | HTTP `200`; page absent. |
 
-#### TC_WIKI_E2E_002 — Proteger una guía frente a un lector sin escritura
+#### TC_WIKI_E2E_002 — Protect a guide from a reader without write access
 
-**Criterio:** CA-WIKI-08<br>
-**Tipo:** E2E / autorización negativa<br>
-**Prioridad:** P1
+**Criterion:** CA-WIKI-08<br>
+**Type:** E2E / negative authorization<br>
+**Priority:** P1
 
-**Precondiciones:** Entorno de 2.2 configurado y título de prueba disponible. Crear la página con los datos de 4.3 y guardar `wiki_slug` y su versión codificada en `wiki_slug_url`. Configurar `token_reader` con acceso de lectura y sin escritura.
+**Preconditions:** Environment in 2.2 configured and test title available. Create the page using the data in 4.3 and save `wiki_slug` and its encoded version in `wiki_slug_url`. Configure `token_reader` with read access and no write access.
 
-| Paso | Solicitud o acción | Resultado esperado |
+| Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con `PRIVATE-TOKEN: {{token_reader}}`. | HTTP `200`; confirmar que el lector tiene acceso de lectura. |
-| 2 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con token de lector y `{"content":"Cambio del lector"}`. | Escritura rechazada; código exacto pendiente de confirmar según permisos. |
-| 3 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con el token de editor. | HTTP `200`; contenido original intacto. |
-| 4 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con el token de lector. | Eliminación rechazada; código exacto pendiente de confirmar según permisos. |
-| 5 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` con el token de editor. | HTTP `200`; página y contenido originales intactos. |
+| 1 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with `PRIVATE-TOKEN: {{token_reader}}`. | HTTP `200`; confirm that the reader has read access. |
+| 2 | PUT `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with the reader token and `{"content":"Cambio del lector"}`. | Write rejected; exact code pending confirmation based on permissions. |
+| 3 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with the editor token. | HTTP `200`; original content intact. |
+| 4 | DELETE `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with the reader token. | Deletion rejected; exact code pending confirmation based on permissions. |
+| 5 | GET `/projects/{{project_id}}/wikis/{{wiki_slug_url}}` with the editor token. | HTTP `200`; original page and content intact. |
 
 ---
 
 <a id="actividad-5"></a>
 
-## Actividad #5: Clasificación de las pruebas
+## Activity #5: Test classification
 
-### 5.1 Clasificación y priorización propuestas
+### 5.1 Proposed classification and prioritization
 
-| Tipo | Propósito | Ejemplo |
+| Type | Purpose | Example |
 | --- | --- | --- |
-| Funcional positivo | Comprobar una operación válida y su efecto. | TC_WIKI_PUT_001 |
-| Funcional negativo | Comprobar rechazo y ausencia de cambios indebidos. | TC_WIKI_POST_002 |
-| Autenticación / autorización negativa | Comprobar credenciales y restricciones de escritura. | TC_WIKI_DELETE_003 / TC_WIKI_E2E_002 |
-| Límite | Comprobar una colección sin elementos. | TC_WIKI_GET_005 |
-| E2E | Comprobar un flujo encadenado y su estado final. | TC_WIKI_E2E_001 |
+| Positive functional | Check a valid operation and its effect. | TC_WIKI_PUT_001 |
+| Negative functional | Check rejection and absence of improper changes. | TC_WIKI_POST_002 |
+| Negative authentication / authorization | Check credentials and write restrictions. | TC_WIKI_DELETE_003 / TC_WIKI_E2E_002 |
+| Boundary | Check a collection with no items. | TC_WIKI_GET_005 |
+| E2E | Check a chained flow and its final state. | TC_WIKI_E2E_001 |
 
-Las [convenciones, prioridades y retroalimentación](l1.md#actividad-5) se reúnen en el documento del grupo.
+The [conventions, priorities and feedback](l1.md#actividad-5) are collected in the group document.
 
 ---
 
 <a id="fuentes"></a>
 
-## Fuentes de la característica
+## Feature sources
 
 - [Project wikis API](https://docs.gitlab.com/api/wikis/).
-- [Wiki: funcionamiento y permisos](https://docs.gitlab.com/user/project/wiki/).
-- [Fuentes compartidas del laboratorio](l1.md#fuentes).
+- [Wiki: operation and permissions](https://docs.gitlab.com/user/project/wiki/).
+- [Shared lab sources](l1.md#fuentes).
 
-[← Volver al laboratorio del grupo](l1.md)
+[← Back to the group lab](l1.md)
