@@ -49,15 +49,30 @@ The remaining variables are in the group document.
 
 ### 2.3 Exploratory testing
 
-**Exploration and screenshots:** pending. These are the steps I will follow:
+During exploratory testing in the browser using Chrome DevTools (Network tab), I captured the HTTP interactions performed by the GitLab web UI when creating and inspecting an issue.
 
-| Pending exploration | Proposed action and data | Evidence to record |
-| --- | --- | --- |
-| Create | Open Issues in GitLab and create an issue with title `sqe3-issue-<run_id>` and description `Initial defect description`. | Network screenshot showing method, URL, body and `201 Created` response. |
-| Retrieve | Open the created issue and retrieve its `iid` using REST API. | Comparison of the visible UI title, status and description with the JSON payload. |
-| Edit | Change the description to `Updated defect description` and close the issue. | PUT request showing `state_event: "close"` and subsequent retrieval confirming `state: "closed"`. |
-| List | List project issues with query filter `?state=closed`. | Response verifying presence of the issue in the closed collection. |
-| Delete | Delete the created test issue using Maintainer credentials. | DELETE response (`204 No Content`) and subsequent GET verifying `404 Not Found`. |
+| Action | Target & Interaction | Observed behavior | Evidence |
+| --- | --- | --- | --- |
+| Create & Inspect | Created issue `Network exploration` (`#1`) in project `capstone#1`. | Web UI triggers a `POST` request to `https://gitlab.com/api/graphql` returning `200 OK`. | Headers inspection screenshot. |
+| Payload verification | Checked request payload for issue attributes. | Client sends GraphQL query/mutation (`workItemTimeTracking`) with project path and `iid`. | Payload inspection screenshot. |
+
+#### Recorded Network Evidence
+
+**1. Request Headers and Status:**
+
+![Network exploration - Request Headers](assets/network_exploration_headers.png)
+
+*Figure 2.1: DevTools Network inspection showing `POST https://gitlab.com/api/graphql` with status `200 OK` upon interacting with the newly created issue.*
+
+**2. Request Payload:**
+
+![Network exploration - Request Payload](assets/network_exploration_payload.png)
+
+*Figure 2.2: DevTools inspection of the JSON request payload containing issue query and parameters.*
+
+#### Comparison with REST API v4
+
+While the GitLab web UI relies on internal GraphQL calls (`/api/graphql`) for real-time interface rendering, the REST API v4 endpoint `/api/v4/projects/:id/issues` exposes the programmatic contract used for automated tests.
 
 Create request body:
 
@@ -77,8 +92,6 @@ Edit request body:
   "state_event": "close"
 }
 ```
-
-In DevTools I will record the request sent by the GitLab web UI (inspecting headers, payload and response) and compare it with the v4 REST endpoint; the web UI may invoke internal GraphQL queries, while automated tests interact with REST `/api/v4/projects/:id/issues`.
 
 ---
 
