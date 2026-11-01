@@ -20,7 +20,7 @@ I will test how project issues are created, retrieved, updated, filtered and del
 
 ### 2.1 Feature description
 
-Project issues in GitLab enable team members to track defect reports, enhancements and backlog tasks directly within a project repository. Creating, editing and closing issues requires at least the Reporter role in private projects, while deleting an issue requires Maintainer or Owner permissions. Reference: [GitLab Issues API](https://docs.gitlab.com/api/issues/).
+Project issues in GitLab enable team members to track defect reports, enhancements and backlog tasks directly within a project repository. Creating, editing and closing issues requires at least the Reporter role in private projects, while deleting an issue requires Project Owner or Administrator permissions (or the issue author where permitted). Reference: [GitLab Issues API — Delete an issue](https://docs.gitlab.com/api/issues/#delete-an-issue).
 
 The tests follow this sequence:
 
@@ -41,7 +41,7 @@ I start with the [group authentication](l1.md#autenticacion). For these cases I 
 | Variable | Use in Issues tests |
 | --- | --- |
 | `token_reporter` | Token with `api` scope belonging to a Reporter or higher. Used as `access_token` when creating, retrieving, editing and closing issues. |
-| `token_maintainer` | Token with `api` scope belonging to a Maintainer. Required when executing issue deletion requests. |
+| `token_owner` | Token with `api` scope belonging to a Project Owner. Required when executing issue deletion requests and cleanup. |
 | `token_guest` | Token belonging to a Guest user with read-only permissions in the project. Used to check authorization restrictions. |
 | `issue_iid` | Internal issue number returned by the API (`iid`), used in subsequent path parameters. |
 
@@ -49,12 +49,12 @@ The remaining variables are in the group document.
 
 ### 2.3 Exploratory testing
 
-During exploratory testing in the browser using Chrome DevTools (Network tab), I captured the HTTP interactions performed by the GitLab web UI when creating and inspecting an issue.
+During exploratory testing in the browser using Chrome DevTools (Network tab filtered by `Fetch/XHR`), I inspected the background HTTP interactions triggered by the GitLab web UI when viewing an issue.
 
 | Action | Target & Interaction | Observed behavior | Evidence |
 | --- | --- | --- | --- |
-| Create & Inspect | Created issue `Network exploration` (`#1`) in project `capstone#1`. | Web UI triggers a `POST` request to `https://gitlab.com/api/graphql` returning `200 OK`. | Headers inspection screenshot. |
-| Payload verification | Checked request payload for issue attributes. | Client sends GraphQL query/mutation (`workItemTimeTracking`) with project path and `iid`. | Payload inspection screenshot. |
+| Inspect & Query | Inspected created issue `Network exploration` (`#1`) in project `capstone#1`. | Web UI triggers background GraphQL queries including `workItemTimeTracking` via `POST https://gitlab.com/api/graphql` returning `200 OK`. | Headers inspection screenshot. |
+| Payload verification | Inspected GraphQL payload for the time-tracking query. | Client sends query `workItemTimeTracking` parameterized with project full path and `iid: "1"`. | Payload inspection screenshot. |
 
 #### Recorded Network Evidence
 
@@ -62,17 +62,17 @@ During exploratory testing in the browser using Chrome DevTools (Network tab), I
 
 ![Network exploration - Request Headers](assets/network_exploration_headers.png)
 
-*Figure 2.1: DevTools Network inspection showing `POST https://gitlab.com/api/graphql` with status `200 OK` upon interacting with the newly created issue.*
+*Figure 2.1: DevTools Network inspection showing `POST https://gitlab.com/api/graphql` with status `200 OK` triggered when inspecting issue #1 details in the browser.*
 
 **2. Request Payload:**
 
 ![Network exploration - Request Payload](assets/network_exploration_payload.png)
 
-*Figure 2.2: DevTools inspection of the JSON request payload containing issue query and parameters.*
+*Figure 2.2: DevTools inspection of the JSON request payload for the GraphQL `workItemTimeTracking` query used by the GitLab web UI to fetch time tracking details for issue #1.*
 
 #### Comparison with REST API v4
 
-While the GitLab web UI relies on internal GraphQL calls (`/api/graphql`) for real-time interface rendering, the REST API v4 endpoint `/api/v4/projects/:id/issues` exposes the programmatic contract used for automated tests.
+While the GitLab web UI utilizes internal GraphQL calls (`/api/graphql`) for reactive component rendering (such as time tracking and sidebar widgets), the REST API v4 endpoint `/api/v4/projects/:id/issues` exposes the documented contract used for our test cases and automated API calls.
 
 Create request body:
 
@@ -115,7 +115,7 @@ Edit request body:
 | 2 | Retrieve the defect by that `issue_iid`. | Compare title, description and initial state (`opened`). |
 | 3 | Update the defect description and set `state_event` to `close`. | Retrieve it again and check `state` is `closed`. |
 | 4 | List project issues with filter `state=closed`. | Find the issue by its `iid` in the closed list. |
-| 5 | Delete the test defect with Maintainer credentials. | Check that it can no longer be retrieved or found in the list. |
+| 5 | Delete the test defect with Owner credentials. | Check that it can no longer be retrieved or found in the list. |
 
 **Expected result:** The defect report reflects changes correctly during its lifecycle and becomes unavailable once deleted.
 
@@ -154,7 +154,7 @@ These are the expected results, based on the [GitLab HTTP status guide](https://
 
 #### Operation: Delete an issue — `DELETE /projects/:id/issues/:issue_iid`
 
-- **CA-ISSUE-13 · Positive:** Deleting an existing issue with Maintainer credentials returns `204 No Content`; subsequent retrieval returns `404 Not Found`.
+- **CA-ISSUE-13 · Positive:** Deleting an existing issue with Owner credentials returns `204 No Content`; subsequent retrieval returns `404 Not Found`.
 - **CA-ISSUE-14 · Negative:** Deleting a nonexistent `issue_iid` returns `404 Not Found` without affecting other issues.
 
 #### E2E criterion
@@ -167,7 +167,7 @@ These are the expected results, based on the [GitLab HTTP status guide](https://
 
 **Prompt to generate the initial scenario list:**
 
-> I am preparing tests for the GitLab Project Issues REST API v4. Using the official documentation for this feature (https://docs.gitlab.com/api/issues/), propose an initial list of test scenarios for creating, retrieving, updating, filtering and deleting issues. Group them into positive, negative, boundary and E2E scenarios. For each scenario, write a clear title and a brief description of what it checks. Consider required fields (title), optional fields (description, labels), permissions (Reporter vs Maintainer vs Guest), nonexistent resources, pagination limits and state transitions (opened to closed). Avoid duplicate scenarios and do not invent restrictions or status codes not backed by documentation. The list will serve as a baseline for me to filter, correct and validate the applicable scenarios.
+> I am preparing tests for the GitLab Project Issues REST API v4. Using the official documentation for this feature (https://docs.gitlab.com/api/issues/), propose an initial list of test scenarios for creating, retrieving, updating, filtering and deleting issues. Group them into positive, negative, boundary and E2E scenarios. For each scenario, write a clear title and a brief description of what it checks. Consider required fields (title), optional fields (description, labels), permissions (Reporter vs Owner vs Guest), nonexistent resources, pagination limits and state transitions (opened to closed). Avoid duplicate scenarios and do not invent restrictions or status codes not backed by documentation. The list will serve as a baseline for me to filter, correct and validate the applicable scenarios.
 
 **Procedure:**
 
@@ -184,11 +184,11 @@ These are the expected results, based on the [GitLab HTTP status guide](https://
 
 The 15 cases have been designed and structured. The following setup, data and cleanup apply to all cases except where individual conditions are stated.
 
-**Common setup:** Configure the variables in 2.2 and group authentication. Use `PRIVATE-TOKEN: {{token_reporter}}` for standard operations, `PRIVATE-TOKEN: {{token_maintainer}}` for deletion, and `Content-Type: application/json` for requests with a body. Base path is `{{base_url}}`.
+**Common setup:** Configure the variables in 2.2 and group authentication. Use `PRIVATE-TOKEN: {{token_reporter}}` for standard operations, `PRIVATE-TOKEN: {{token_owner}}` for deletion, and `Content-Type: application/json` for requests with a body. Base path is `{{base_url}}`.
 
 **Test data:** `title = sqe3-issue-{{run_id}}`, `description = Initial defect description` and `labels = bug,sqe3`. Use a unique `run_id` for each test execution. When a case requires an existing issue, create it with `POST /projects/{{project_id}}/issues`, check for `201` and save the returned `iid` as `issue_iid`. For nonexistent references, use `99999999` and check that retrieval produces `404`.
 
-**Common cleanup:** After each case, delete the created issue with the maintainer token via `DELETE /projects/{{project_id}}/issues/{{issue_iid}}`. If already deleted, confirm absence with `404`.
+**Common cleanup:** After each case, delete the created issue with the owner token via `DELETE /projects/{{project_id}}/issues/{{issue_iid}}`. If already deleted, confirm absence with `404`.
 
 ---
 
@@ -331,11 +331,13 @@ The 15 cases have been designed and structured. The following setup, data and cl
 **Type:** Positive functional<br>
 **Priority:** P2
 
-**Preconditions:** Issue created and closed via `TC_ISSUE_PUT_002`; `issue_iid` saved.
+**Preconditions:** Environment in 2.2 configured and project accessible.
 
 | Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | GET `/projects/{{project_id}}/issues?state=closed`. | HTTP `200`; all items returned have `state: "closed"`; the issue `issue_iid` is present in the array. |
+| 1 | POST `/projects/{{project_id}}/issues` with `{"title":"sqe3-issue-closed-{{run_id}}"}`. | HTTP `201`; save `iid` in `issue_iid`; issue created in `"opened"` state. |
+| 2 | PUT `/projects/{{project_id}}/issues/{{issue_iid}}` with `{"state_event":"close"}`. | HTTP `200`; `state` transitions to `"closed"`. |
+| 3 | GET `/projects/{{project_id}}/issues?state=closed`. | HTTP `200`; all items returned have `state: "closed"`; the issue `issue_iid` is present in the array. |
 
 ---
 
@@ -359,11 +361,11 @@ The 15 cases have been designed and structured. The following setup, data and cl
 **Type:** Positive functional<br>
 **Priority:** P1
 
-**Preconditions:** Issue created via test data setup; `issue_iid` saved. Token has Maintainer role.
+**Preconditions:** Issue created via test data setup; `issue_iid` saved. Token has Owner role.
 
 | Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | DELETE `/projects/{{project_id}}/issues/{{issue_iid}}` with `PRIVATE-TOKEN: {{token_maintainer}}`. | HTTP `204 No Content`; body is empty. |
+| 1 | DELETE `/projects/{{project_id}}/issues/{{issue_iid}}` with `PRIVATE-TOKEN: {{token_owner}}`. | HTTP `204 No Content`; body is empty. |
 | 2 | GET `/projects/{{project_id}}/issues/{{issue_iid}}`. | HTTP `404 Not Found`; confirms resource was permanently deleted. |
 
 ---
@@ -378,7 +380,7 @@ The 15 cases have been designed and structured. The following setup, data and cl
 
 | Step | Request or action | Expected result |
 | --- | --- | --- |
-| 1 | DELETE `/projects/{{project_id}}/issues/99999999` with maintainer token. | HTTP `404 Not Found`. |
+| 1 | DELETE `/projects/{{project_id}}/issues/99999999` with owner token. | HTTP `404 Not Found`. |
 
 ---
 
@@ -396,7 +398,7 @@ The 15 cases have been designed and structured. The following setup, data and cl
 | 2 | GET `/projects/{{project_id}}/issues/{{issue_iid}}`. | HTTP `200`; `state` is `"opened"`. |
 | 3 | PUT `/projects/{{project_id}}/issues/{{issue_iid}}` with `{"description":"Resolved defect","state_event":"close"}`. | HTTP `200`; `state` is `"closed"`. |
 | 4 | GET `/projects/{{project_id}}/issues?state=closed`. | HTTP `200`; `issue_iid` is present in the list. |
-| 5 | DELETE `/projects/{{project_id}}/issues/{{issue_iid}}` with maintainer token. | HTTP `204 No Content`. |
+| 5 | DELETE `/projects/{{project_id}}/issues/{{issue_iid}}` with owner token. | HTTP `204 No Content`. |
 | 6 | GET `/projects/{{project_id}}/issues/{{issue_iid}}`. | HTTP `404 Not Found`; resource confirmed absent. |
 
 ---
