@@ -49,17 +49,43 @@ The remaining variables are in the group document.
 
 ### 2.3 Exploratory testing
 
-**Exploration and screenshots:** pending. These are the steps I will follow:
+I inspected the requests made by the GitLab web interface while browsing the project wiki, using the Network tab in DevTools.
 
-| Pending exploration | Proposed action and data | Evidence to record |
+| Interaction | What I observed | Evidence |
 | --- | --- | --- |
-| Create | Open Wiki and create `sqe3-wiki-<run_id>` with content `Guía inicial`. | Network screenshot showing method, URL, body and response. |
-| Retrieve | Open the page and retrieve its `slug` using REST. | Comparison of the visible title and content with the JSON. |
-| Edit | Change the content to `Guía actualizada`, keeping the title. | Edit request and subsequent retrieval confirming persistence. |
-| List | List pages with and without `with_content=true`. | Presence of the page and difference in the `content` field. |
-| Delete | Delete only the page created for exploration. | Deletion response and subsequent retrieval. |
+| Retrieve a wiki page | A `POST` request to `/api/graphql` returned `200 OK`. Its payload identifies the `wikiPageQuery` operation. | Headers and payload screenshots. |
+| Inspect the query variables | The selected query uses the page slug `home2`, a project ID and `skipDiscussions: false`. | Payload screenshot. |
+| Browse wiki requests | The request list includes GraphQL calls and wiki requests with version parameters, with `200` and `304` responses. | Network overview and HAR capture. |
 
-Create request body:
+#### Recorded Network Evidence
+
+**1. Request headers and status**
+
+![Wiki exploration - request headers](assets/matthew/network_exploration_headers.png)
+
+*Figure 2.1: The selected GraphQL request uses POST and returns `200 OK`.*
+
+**2. Request payload**
+
+![Wiki exploration - request payload](assets/matthew/network_exploration_payload.png)
+
+*Figure 2.2: The `wikiPageQuery` payload contains the project ID and the page slug `home2`.*
+
+**3. Network overview**
+
+![Wiki exploration - Network overview](assets/matthew/network_exploration_fetch.png)
+
+*Figure 2.3: The Network list shows the requests recorded during wiki navigation, including page-version requests and cached responses.*
+
+**HAR capture:** [Sanitized browser network log](assets/matthew/gitlab). Anti-CSRF header values were redacted before including the file in the lab.
+
+#### Comparison with REST API v4
+
+The selected browser request reads a wiki page through GraphQL. The LLTC cases below use the documented REST v4 endpoints. These screenshots and the HAR record browser exploration; execution of the REST test cases remains pending.
+
+The capture contains page and version reads. Recording the requests that create, edit and delete a page remains pending.
+
+Proposed REST create request body:
 
 ```json
 {
@@ -69,15 +95,13 @@ Create request body:
 }
 ```
 
-Edit request body:
+Proposed REST edit request body:
 
 ```json
 {
   "content": "Guía actualizada"
 }
 ```
-
-In DevTools I will record the request used by the interface and compare it with the REST v4 endpoint; they may use different routes or formats.
 
 ---
 

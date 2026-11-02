@@ -52,7 +52,7 @@ Pending.
 
 **Expected result:** Pending.
 
-**Flows alternos:** Pending.
+**Alternative flows:** Pending.
 
 ---
 
