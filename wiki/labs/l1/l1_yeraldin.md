@@ -60,13 +60,13 @@ During exploratory testing in the browser using Chrome DevTools (Network tab fil
 
 **1. Request Headers and Status:**
 
-![Network exploration - Request Headers](assets/network_exploration_headers.png)
+![Network exploration - Request Headers](assets/yeraldin/network_exploration_headers.png)
 
 *Figure 2.1: DevTools Network inspection showing `POST https://gitlab.com/api/graphql` with status `200 OK` triggered when inspecting issue #1 details in the browser.*
 
 **2. Request Payload:**
 
-![Network exploration - Request Payload](assets/network_exploration_payload.png)
+![Network exploration - Request Payload](assets/yeraldin/network_exploration_payload.png)
 
 *Figure 2.2: DevTools inspection of the JSON request payload for the GraphQL `workItemTimeTracking` query used by the GitLab web UI to fetch time tracking details for issue #1.*
 
