@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "SQE3 Group 4 - Alexis Frene - Project Labels",
-    "description": "Individual Postman collection for the GitLab Project labels REST API v4. The collection contains no credentials.",
+    "name": "SQE3 Lab 2 - Group 4 - Alexis Frene - Project Labels",
+    "description": "Lab 2 individual Postman collection for the GitLab Project labels REST API v4. The collection contains no credentials.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [

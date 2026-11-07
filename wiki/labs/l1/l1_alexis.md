@@ -78,7 +78,7 @@ DELETE {{base_url}}/projects/{{project_id}}/labels/{{label_name_updated_url}}
 
 The browser capture is evidence of the interaction, while the REST cases below validate the documented API contract. Screenshots should show only the request method, endpoint, status and sanitized payload; credentials must be hidden before submission.
 
-The importable Postman implementation is available in [the individual collection](postman/alexis-project-labels.postman_collection.json), with a [credential-free environment template](postman/alexis-project-labels.postman_environment.example.json) and setup instructions in [the Postman README](postman/README.md).
+The Lab 2 Postman implementation is available in [the individual collection](../l2/postman/alexis-lab2/alexis-project-labels.postman_collection.json), with a [credential-free environment template](../l2/postman/alexis-lab2/alexis-project-labels.postman_environment.example.json) and setup instructions in [the Lab 2 README](../l2/postman/alexis-lab2/README.md).
 
 <a id="actividad-3"></a>
 

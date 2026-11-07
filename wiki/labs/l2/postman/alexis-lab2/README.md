@@ -1,4 +1,4 @@
-# Alexis Frene — Postman Project Labels
+# Alexis Frene - Lab 2 Postman Project Labels
 
 Esta carpeta contiene la implementación individual de Alexis para la API de
 labels de proyectos de GitLab REST API v4.
