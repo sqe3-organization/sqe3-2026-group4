@@ -1,70 +1,70 @@
 # Yeraldin Vasquez - Lab 2 Postman Project Issues
 
-Esta carpeta contiene la implementación individual de Yeraldin Vasquez para la API de incidencias de proyectos (Project Issues) de GitLab REST API v4.
+This folder contains Yeraldin Vasquez's individual implementation for the GitLab REST API v4 Project Issues feature.
 
-## Archivos
+## Files
 
-- `yeraldin-project-issues.postman_collection.json`: Colección completa en formato Postman v2.1.0 que implementa los casos de prueba `TC_ISSUE_*`, aserciones de código de estado, cabeceras, cuerpo JSON, validación de esquemas y el flujo completo de ciclo de vida E2E.
-- `yeraldin-project-issues.postman_environment.example.json`: Plantilla de variables de ambiente sin valores sensibles ni tokens.
+- `yeraldin-project-issues.postman_collection.json`: Complete Postman v2.1.0 collection implementing `TC_ISSUE_*` test cases, assertions for HTTP status codes, headers, JSON body attributes, schema validation, and an end-to-end (E2E) lifecycle flow.
+- `yeraldin-project-issues.postman_environment.example.json`: Environment variable template without secrets or credentials.
 
-## Configuración del Ambiente en Postman
+## Postman Environment Setup
 
-1. Abrir Postman e importar ambos archivos (`.postman_collection.json` y `.postman_environment.example.json`).
-2. Duplicar el ambiente importado bajo un nombre local (por ejemplo `SQE3 - Yeraldin Local`).
-3. Configurar los valores de las siguientes variables en el ambiente local:
-   - `base_url`: URL base de la API (por defecto `https://gitlab.com/api/v4`).
-   - `project_id`: ID numérico del proyecto de pruebas en GitLab.
-   - `token_reporter`: Token de acceso personal con alcance `api` y rol Reporter (o superior) para crear, consultar, modificar y cerrar issues.
-   - `token_owner`: Token de acceso personal con alcance `api` y rol Project Owner / Mantenedor para la eliminación definitiva de issues.
-   - `token_guest`: Token opcional con rol Guest para validar restricciones de autorización.
-4. **Seguridad:** No subir tokens reales ni valores confidenciales al repositorio de Git ni incluirlos en capturas públicas.
+1. Open Postman and import both files (`.postman_collection.json` and `.postman_environment.example.json`).
+2. Duplicate the imported environment for local usage (e.g., `SQE3 - Yeraldin Local`) and select it.
+3. Configure the following variables in your local environment:
+   - `base_url`: API base URL (defaults to `https://gitlab.com/api/v4`).
+   - `project_id`: Numeric ID of the disposable GitLab test project.
+   - `token_reporter`: Personal access token with `api` scope and Reporter role (or higher) to create, retrieve, update, and close issues.
+   - `token_owner`: Personal access token with `api` scope and Project Owner / Maintainer role for permanent issue deletion.
+   - `token_guest`: Optional token with Guest role to verify authorization restrictions.
+4. **Security Notice:** Do not commit actual tokens, cookies, or secrets to the Git repository or include them in screenshots.
 
-## Estructura y Orden de Ejecución
+## Collection Structure and Recommended Execution Order
 
-La colección cuenta con un script de pre-solicitud a nivel de colección que genera dinámicamente un `run_id` basado en marca de tiempo (`Date.now()`) y asigna títulos únicos (`issue_title`, `e2e_issue_title`) para evitar colisiones entre ejecuciones sucesivas.
+The collection includes a collection-level pre-request script that dynamically generates a timestamp-based `run_id` (`Date.now()`) and sets unique issue titles (`issue_title`, `e2e_issue_title`) to prevent naming collisions between consecutive runs.
 
-Para una ejecución secuencial recomendada:
+Recommended sequential execution order:
 
-1. **Creación de Issues:**
-   - `TC_ISSUE_POST_001`: Crea el issue principal y almacena automáticamente `issue_iid` en variables de colección.
-   - `TC_ISSUE_POST_002`: Valida el rechazo (400 Bad Request) al omitir el campo obligatorio `title`.
-   - `TC_ISSUE_POST_003`: Valida el rechazo de autenticación (401 Unauthorized) con un token inválido.
-   - `TC_ISSUE_POST_004`: Crea un issue con etiquetas y almacena `labels_issue_iid`.
-2. **Consultas y Filtros:**
-   - `TC_ISSUE_GET_001`: Consulta el issue creado por su `issue_iid` y verifica atributos y tiempos de respuesta.
-   - `TC_ISSUE_GET_002`: Valida respuesta 404 ante un ID inexistente.
-3. **Modificaciones:**
-   - `TC_ISSUE_PUT_001`: Actualiza la descripción manteniendo el título original intacto.
-   - `TC_ISSUE_PUT_002`: Cierra el issue mediante `state_event: "close"` y verifica la marca temporal `closed_at`.
-   - `TC_ISSUE_PUT_003`: Valida 404 al intentar modificar un issue inexistente.
-4. **Filtros Avanzados y Límites:**
-   - `TC_ISSUE_GET_003`: Filtra issues con `state=closed` y comprueba que todos los elementos cumplan la condición.
-   - `TC_ISSUE_GET_004`: Verifica paginación límite con `per_page=1` y valida las cabeceras `x-per-page` y `x-total`.
-5. **Eliminación y Autorización:**
-   - `TC_ISSUE_DELETE_001`: Elimina el issue principal con credenciales de Owner (204 No Content).
-   - `TC_ISSUE_DELETE_002`: Valida 404 al intentar eliminar un issue inexistente.
-   - `TC_ISSUE_E2E_002`: Comprueba que un rol no autorizado (Guest) no pueda editar issues.
-6. **Flujo E2E Completo:**
-   - Carpeta `TC_ISSUE_E2E_001 - Complete issue lifecycle`: Ejecuta los 6 pasos del ciclo de vida (crear -> consultar -> cerrar -> filtrar -> eliminar -> verificar ausencia) de manera autónoma.
-7. **Limpieza:**
-   - Solicitud `Cleanup - Delete remaining labels issue if present` para asegurar que el proyecto quede limpio.
+1. **Issue Creation:**
+   - `TC_ISSUE_POST_001`: Creates the primary test issue and stores `issue_iid` in collection variables.
+   - `TC_ISSUE_POST_002`: Validates rejection (`400 Bad Request`) when omitting the mandatory `title` attribute.
+   - `TC_ISSUE_POST_003`: Validates authentication rejection (`401 Unauthorized`) with an invalid token.
+   - `TC_ISSUE_POST_004`: Creates an issue with multiple labels and saves `labels_issue_iid`.
+2. **Retrieval and Nonexistent Validation:**
+   - `TC_ISSUE_GET_001`: Retrieves the created issue by its `issue_iid` and checks attributes and response times.
+   - `TC_ISSUE_GET_002`: Validates `404 Not Found` response for a nonexistent issue ID.
+3. **Modifications:**
+   - `TC_ISSUE_PUT_001`: Updates description while preserving the original title intact.
+   - `TC_ISSUE_PUT_002`: Closes the issue using `state_event: "close"` and verifies the `closed_at` timestamp.
+   - `TC_ISSUE_PUT_003`: Validates `404 Not Found` when attempting to update a nonexistent issue.
+4. **Advanced Filters and Boundaries:**
+   - `TC_ISSUE_GET_003`: Filters issues by `state=closed` and verifies that all items satisfy the filter.
+   - `TC_ISSUE_GET_004`: Tests pagination boundary with `per_page=1` and validates `x-per-page` and `x-total` headers.
+5. **Deletion and Authorization Boundaries:**
+   - `TC_ISSUE_DELETE_001`: Deletes the primary issue using Owner credentials (`204 No Content`).
+   - `TC_ISSUE_DELETE_002`: Validates `404 Not Found` when attempting to delete a nonexistent issue.
+   - `TC_ISSUE_E2E_002`: Verifies authorization boundary: an unprivileged Guest role cannot modify issues.
+6. **Full E2E Lifecycle Flow:**
+   - Folder `TC_ISSUE_E2E_001 - Complete issue lifecycle`: Executes the 6-step lifecycle flow (Create -> Retrieve -> Close -> Filter -> Delete -> Verify Absence) independently.
+7. **Cleanup:**
+   - Request `Cleanup - Delete remaining labels issue if present` to ensure the project remains clean.
 
-## Ejecución Automatizada por CLI (Newman)
+## Automated Execution via CLI (Newman)
 
-Las pruebas pueden ejecutarse de manera desatendida mediante Newman en consola o en un pipeline de integración continua:
+The collection can be executed automatically in continuous integration (CI/CD) pipelines or terminal environments using Newman:
 
 ```bash
-# Ejecución básica indicando colección y ambiente
+# Run collection with local environment file
 npx newman run yeraldin-project-issues.postman_collection.json \
-  -e mi_ambiente_local.json \
+  -e my_local_environment.json \
   --reporters cli
 ```
 
-Para generar un reporte HTML o JSON de la ejecución:
+To export an execution report in JSON format:
 
 ```bash
 npx newman run yeraldin-project-issues.postman_collection.json \
-  -e mi_ambiente_local.json \
+  -e my_local_environment.json \
   --reporters cli,json \
-  --reporter-json-export resultado_ejecucion.json
+  --reporter-json-export run_report.json
 ```

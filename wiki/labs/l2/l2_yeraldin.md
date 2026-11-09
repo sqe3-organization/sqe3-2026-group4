@@ -1,139 +1,134 @@
-# Lab 2 — Yeraldin: Postman Project Issues
+# Lab 2 — Yeraldin: Project issues implementation
 
-[← Volver al índice grupal](l2.md)  
-[← Volver al diseño de casos en Lab 1](../l1/l1_yeraldin.md)
+[Back to the group lab](l2.md)  
+[Back to the Lab 1 design](../l1/l1_yeraldin.md)
 
-Este documento presenta la implementación individual de Yeraldin Vasquez para el **Laboratorio 2: Pruebas de API con Postman**, aplicada sobre el módulo **Project Issues** de la API REST v4 de GitLab (`/api/v4/projects/:id/issues`).
-
----
-
-## Contenido
-
-- [Actividad #1: Configuración de Postman y Autorización](#actividad-1)
-- [Actividad #2: Conceptos de Verificaciones y Pruebas Implementadas](#actividad-2)
-- [Actividad #3: Factibilidad, Precondiciones, Ámbitos y Variables Compartidas](#actividad-3)
-- [Actividad #4: Convenciones de Organización y Ejecución Automática](#actividad-4)
-- [Actividad #5: Evaluación de Pares y Retroalimentación](#actividad-5)
-- [Entregables de Postman](#entregables)
+This document contains Yeraldin Vasquez's individual deliverables for **Lab 2: API testing with Postman**, focused on the **Project Issues** feature of the GitLab REST API v4 (`/api/v4/projects/:id/issues`).
 
 ---
 
-<a id="actividad-1"></a>
+## Contents
 
-## Actividad #1: Configuración de Postman y Autorización
+- [Activity 1: Tool setup, sample requests and authorization](#activity-1)
+- [Activity 2: Assertions and Lab 1 implementation](#activity-2)
+- [Activity 3: Preconditions, postconditions and variables](#activity-3)
+- [Activity 4: Structure and automated execution](#activity-4)
+- [Activity 5: Review and feedback](#activity-5)
+- [Postman deliverables](#deliverables)
+- [Sources](#sources)
 
-### 1.1 Configuración de la herramienta
+---
 
-Para este laboratorio se utilizó **Postman** (versión de escritorio y CLI Newman v6.2) configurado para interactuar con la API REST v4 de GitLab (`https://gitlab.com/api/v4`).
+<a id="activity-1"></a>
 
-Pasos de configuración inicial:
-1. Creación del espacio de trabajo local para SQE3.
-2. Definición del ambiente de variables `yeraldin-project-issues.postman_environment.json`.
-3. Ajuste de encabezados globales predeterminados (`User-Agent`, `Accept: application/json`).
-4. Configuración del proxy y verificación de conectividad SSL/TLS hacia `gitlab.com`.
+## Activity #1: Tool setup, sample requests and authorization
 
-### 1.2 Peticiones simples exploratorias
+### 1.1 Tool setup and sample requests
 
-Antes de abordar el flujo de incidencias, se realizaron peticiones simples para comprobar el estado y contrato general del servicio:
+For this lab, I configured **Postman** (desktop app and Newman CLI v6.2) to interact with the GitLab REST API v4 (`https://gitlab.com/api/v4`).
 
-- **Consulta de versión:** `GET https://gitlab.com/api/v4/version`. Permite validar conectividad, latencia y disponibilidad sin requerir autenticación privilegiada (devuelve versión y revisión del servidor GitLab).
-- **Consulta de proyectos accesibles:** `GET https://gitlab.com/api/v4/projects?per_page=1`. Permite verificar la respuesta en formato JSON array y la presencia de cabeceras de paginación (`x-total`, `x-per-page`).
+Initial configuration steps:
+1. Created a dedicated workspace for SQE3.
+2. Defined the environment template `yeraldin-project-issues.postman_environment.example.json`.
+3. Adjusted default headers (`Accept: application/json`, `User-Agent`).
+4. Verified SSL/TLS connectivity and base latency towards `gitlab.com`.
 
-### 1.3 Petición de autorización sobre GitLab API
+Before building complex functional test cases, I executed simple exploratory requests to verify service availability and API contracts:
 
-GitLab REST API v4 soporta dos mecanismos principales de autorización mediante tokens:
-1. **Encabezado `PRIVATE-TOKEN`:** Recibe directamente el token de acceso personal (PAT).
-2. **Encabezado `Authorization: Bearer <token>`:** Estándar OAuth2 utilizado por tokens de sesión o tokens de pipeline.
+- **Version check:** `GET https://gitlab.com/api/v4/version`. Confirmed service availability and server revision, returning `200 OK`.
+- **Accessible projects:** `GET https://gitlab.com/api/v4/projects?per_page=1`. Used to inspect JSON array responses and verify pagination headers (`x-total`, `x-per-page`).
 
-En nuestra colección se adoptó la cabecera `PRIVATE-TOKEN: {{token_reporter}}` (o `{{token_owner}}` según la operación) vinculada a variables de ambiente.
+### 1.2 Assigned application authorization
 
-**Matriz de roles y permisos configurados:**
+GitLab REST API v4 requires role-based access control. In this collection, authorization is implemented via the HTTP header `PRIVATE-TOKEN: {{token_reporter}}` (or `{{token_owner}}` for destructive actions) bound to environment variables.
 
-| Rol | Token asignado | Permisos evaluados | Caso de prueba asociado |
+**Role and permission matrix:**
+
+| Role | Variable | Permissions evaluated | Associated test cases |
 | --- | --- | --- | --- |
-| **Reporter** | `token_reporter` | Crear issues, leer detalles, actualizar descripción y cerrar incidencias. | `TC_ISSUE_POST_001`, `TC_ISSUE_PUT_001`, `TC_ISSUE_PUT_002` |
-| **Project Owner** | `token_owner` | Eliminación física definitiva de incidencias (`DELETE /issues/:iid`). | `TC_ISSUE_DELETE_001`, `TC_ISSUE_E2E_001` |
-| **Guest** | `token_guest` | Rol de solo lectura sin permisos de mutación en proyectos privados. | `TC_ISSUE_E2E_002` (espera 403 Forbidden o 404) |
-| **Sin token / Inválido** | `invalid_token_...` | Rechazo inmediato de acceso. | `TC_ISSUE_POST_003` (espera 401 Unauthorized) |
+| **Reporter** | `token_reporter` | Create issues, retrieve details, update description, and close issues. | `TC_ISSUE_POST_001`, `TC_ISSUE_PUT_001`, `TC_ISSUE_PUT_002` |
+| **Project Owner** | `token_owner` | Permanent issue deletion (`DELETE /issues/:iid`). | `TC_ISSUE_DELETE_001`, `TC_ISSUE_E2E_001` |
+| **Guest** | `token_guest` | Read-only role without mutation permissions in private projects. | `TC_ISSUE_E2E_002` (verifies 403 Forbidden or 404) |
+| **Invalid / Missing token** | `invalid_token_...` | Immediate access rejection. | `TC_ISSUE_POST_003` (verifies 401 Unauthorized) |
 
 ---
 
-<a id="actividad-2"></a>
+<a id="activity-2"></a>
 
-## Actividad #2: Conceptos de Verificaciones y Pruebas Implementadas
+## Activity #2: Assertions and Lab 1 implementation
 
-### 2.1 Concepto de verificaciones en Postman
+### 2.1 Postman verification concepts
 
-Las pruebas en Postman se ejecutan en la pestaña **Tests** tras recibir la respuesta HTTP. Utilizan la librería de aserciones Chai BDD encapsulada en la API `pm.*`:
-- `pm.test(testName, function)`: Define el bloque de prueba reportable.
-- `pm.response.code`: Accede al código de estado HTTP numérico.
-- `pm.response.json()`: Parsea el cuerpo en formato JSON para verificar propiedades y tipos.
-- `pm.response.headers`: Permite inspeccionar cabeceras HTTP como `Content-Type`, `x-per-page`, etc.
-- `pm.response.responseTime`: Mide el tiempo de respuesta en milisegundos.
+Tests in Postman run in the **Tests** tab immediately after receiving the HTTP response. Assertions are structured using Chai BDD syntax encapsulated in the `pm.*` API:
+- `pm.test(testName, callback)`: Declares a test block reported in the runner.
+- `pm.response.code`: Checks the exact numerical HTTP status code.
+- `pm.response.json()`: Parses JSON response bodies to assert properties and data types.
+- `pm.response.headers`: Inspects response headers (`Content-Type`, `x-per-page`, etc.).
+- `pm.response.responseTime`: Measures latency thresholds in milliseconds.
 
-### 2.2 Cobertura de pruebas implementadas desde Lab 1
+### 2.2 Implemented test cases from Lab 1
 
-Se implementaron en la colección la totalidad de los casos diseñados en el Laboratorio 1 (`wiki/labs/l1/l1_yeraldin.md`), incorporando múltiples verificaciones por petición:
+The collection implements all 15 test cases designed in Lab 1 (`wiki/labs/l1/l1_yeraldin.md`), plus the cleanup request and the E2E lifecycle suite, providing multiple assertions per request:
 
-| Caso de prueba | Método y Endpoint | Verificaciones implementadas |
-| --- | --- | --- |
-| `TC_ISSUE_POST_001` | `POST /projects/:id/issues` | Código `201 Created`; cuerpo con propiedad `iid`, `id`, `state == "opened"`; título coincide con variable dinámica; descripción correcta; cabecera `Content-Type: application/json`. Guarda `issue_iid` en variables. |
-| `TC_ISSUE_POST_002` | `POST /projects/:id/issues` | Código `400 Bad Request`; cuerpo JSON reporta error indicando que `title is missing`. |
-| `TC_ISSUE_POST_003` | `POST /projects/:id/issues` | Código `401 Unauthorized` ante token falso; cuerpo confirma mensaje de autorización denegada. |
-| `TC_ISSUE_POST_004` | `POST /projects/:id/issues` | Código `201 Created`; valida que el campo `labels` sea un arreglo y contenga `["bug", "sqe3"]`. Guarda `labels_issue_iid`. |
-| `TC_ISSUE_GET_001` | `GET /projects/:id/issues/:issue_iid` | Código `200 OK`; coincide `iid`; estado válido (`opened`); contiene objeto `author` y fecha `created_at`; tiempo de respuesta < 2500 ms. |
-| `TC_ISSUE_GET_002` | `GET /projects/:id/issues/999999999` | Código `404 Not Found`; mensaje de error indica recurso no encontrado. |
-| `TC_ISSUE_PUT_001` | `PUT /projects/:id/issues/:issue_iid` | Código `200 OK`; descripción actualizada correctamente; título original no sufre modificaciones indeseadas. |
-| `TC_ISSUE_PUT_002` | `PUT /projects/:id/issues/:issue_iid` | Código `200 OK`; `state == "closed"`; propiedad `closed_at` no nula. |
-| `TC_ISSUE_PUT_003` | `PUT /projects/:id/issues/999999999` | Código `404 Not Found` al intentar actualizar un issue inexistente. |
-| `TC_ISSUE_GET_003` | `GET /projects/:id/issues?state=closed` | Código `200 OK`; respuesta es un arreglo; comprobación iterativa de que cada elemento tiene `state == "closed"`; valida presencia del issue cerrado previamente. |
-| `TC_ISSUE_GET_004` | `GET /projects/:id/issues?per_page=1&page=1` | Código `200 OK`; longitud del arreglo <= 1; cabeceras `x-per-page == "1"`, `x-page` y `x-total` presentes. |
-| `TC_ISSUE_DELETE_001` | `DELETE /projects/:id/issues/:issue_iid` | Código `204 No Content` (o `200 OK`) usando token de Owner. |
-| `TC_ISSUE_DELETE_002` | `DELETE /projects/:id/issues/999999999` | Código `404 Not Found` al intentar eliminar issue inexistente. |
-| `TC_ISSUE_E2E_002` | `PUT /projects/:id/issues/:labels_issue_iid` | Código `403 Forbidden` (o `404 Not Found`) cuando un usuario con rol Guest intenta mutar el recurso. |
-| `TC_ISSUE_E2E_001` | Flujo secuencial (6 pasos) | Verificación completa del ciclo de vida en subcarpeta dedicada: creación -> consulta -> cierre -> filtrado -> eliminación -> verificación de ausencia (404). |
-| `Cleanup` | `DELETE /projects/:id/issues/:labels_issue_iid` | Eliminación segura de recursos auxiliares al finalizar las pruebas. |
+| Test case ID | Method and endpoint | Status and header assertions | JSON body and schema assertions |
+| --- | --- | --- | --- |
+| `TC_ISSUE_POST_001` | POST /projects/:id/issues | Status 201 Created; Content-Type application/json. | Properties iid, id, state opened; title matches dynamic variable; description intact; saves issue_iid. |
+| `TC_ISSUE_POST_002` | POST /projects/:id/issues | Status 400 Bad Request. | Error body explicitly states "title is missing". |
+| `TC_ISSUE_POST_003` | POST /projects/:id/issues | Status 401 Unauthorized. | Confirms unauthorized message with invalid credentials. |
+| `TC_ISSUE_POST_004` | POST /projects/:id/issues | Status 201 Created. | Labels field is an array containing ["bug", "sqe3"]; saves labels_issue_iid. |
+| `TC_ISSUE_GET_001` | GET /projects/:id/issues/:iid | Status 200 OK; response time < 2500 ms. | Matches requested iid; state is opened; author and created_at fields present. |
+| `TC_ISSUE_GET_002` | GET /projects/:id/issues/999999999 | Status 404 Not Found. | Error message confirms resource not found. |
+| `TC_ISSUE_PUT_001` | PUT /projects/:id/issues/:iid | Status 200 OK. | Description updated with new text; original title preserved unchanged. |
+| `TC_ISSUE_PUT_002` | PUT /projects/:id/issues/:iid | Status 200 OK. | State transitions to "closed"; closed_at contains non-null timestamp. |
+| `TC_ISSUE_PUT_003` | PUT /projects/:id/issues/999999999 | Status 404 Not Found. | Rejects update on nonexistent issue ID. |
+| `TC_ISSUE_GET_003` | GET /projects/:id/issues?state=closed | Status 200 OK. | Returned array; iteratively checks that every element has state == "closed". |
+| `TC_ISSUE_GET_004` | GET /projects/:id/issues?per_page=1 | Status 200 OK; header x-per-page is "1". | Array length is at most 1 item; pagination headers x-page and x-total present. |
+| `TC_ISSUE_DELETE_001` | DELETE /projects/:id/issues/:iid | Status 204 No Content (or 200 OK). | Permanent deletion executed with Owner token. |
+| `TC_ISSUE_DELETE_002` | DELETE /projects/:id/issues/999999999 | Status 404 Not Found. | Rejects deletion on nonexistent issue ID. |
+| `TC_ISSUE_E2E_002` | PUT /projects/:id/issues/:labels_iid | Status 403 Forbidden (or 404). | Authorization boundary: unprivileged Guest role cannot mutate issues. |
+| `TC_ISSUE_E2E_001` | Suite flow (6 requests) | 201 → 200 → 200 → 200 → 204 → 404. | Full defect lifecycle: create issue -> read details -> close issue -> verify in closed filter -> delete with Owner -> verify absence (404). |
+| `Cleanup` | DELETE /projects/:id/issues/:labels_iid | Status 204, 200 or 404. | Safe cleanup request ensuring test project cleanliness. |
 
 ---
 
-<a id="actividad-3"></a>
+<a id="activity-3"></a>
 
-## Actividad #3: Factibilidad, Precondiciones, Ámbitos y Variables Compartidas
+## Activity #3: Preconditions, postconditions and variables
 
-### 3.1 Factibilidad de implementación en Postman
+### 3.1 Implementation feasibility in Postman
 
-Todas las pruebas escritas en el Laboratorio 1 resultaron 100% factibles de implementar en Postman. No se requirió emular comportamientos externos complejos, ya que la API REST de GitLab es determinista y provee parámetros de consulta directos para filtrado (`state=closed`), paginación (`per_page=1`) y transición de estados (`state_event: "close"`).
+All 15 test cases designed in Lab 1 proved 100% feasible in Postman. No architectural blockers were encountered because the GitLab REST API v4 behaves deterministically, using standard query parameters (`state=closed`, `per_page=1`), conventional HTTP response codes (201, 200, 204, 400, 401, 403, 404), and uniform header-based authentication.
 
-### 3.2 Precondiciones y postcondiciones identificadas
+### 3.2 Preconditions and postconditions matrix
 
-| Operación | Precondiciones requeridas | Postcondiciones esperadas |
+| Operation | Execution preconditions | Verified postconditions |
 | --- | --- | --- |
-| **POST (Creación)** | Proyecto accesible (`project_id`), token con rol Reporter o superior, `title` presente. | Nuevo issue registrado con número `iid` incremental, estado `opened`, datos almacenados en variables de colección. |
-| **GET (Consulta por IID)** | `issue_iid` válido y activo en el proyecto. | Respuesta inmutable que no altera el estado del issue ni de la base de datos. |
-| **PUT (Actualización / Cierre)** | `issue_iid` existente, permisos de Reporter, cuerpo JSON con campos válidos o `state_event`. | Issue modificado en base de datos; si se cierra, `closed_at` toma marca de tiempo actual. |
-| **GET (Filtrado y límites)** | Al menos un issue en estado cerrado en el repositorio para validar búsqueda. | Lista filtrada devuelta sin efectos colaterales en los recursos. |
-| **DELETE (Eliminación)** | `issue_iid` existente, **token con rol Project Owner o Administrador**. | Recurso purgado de la base de datos; consultas posteriores sobre ese `iid` devuelven 404. |
+| **Creation (POST)** | Accessible GitLab project; token with Reporter role or higher; JSON payload with mandatory `title`. | Issue stored in database; incremental `iid` assigned; state `opened`; `issue_iid` saved in collection variables. |
+| **Retrieval (GET)** | Valid `issue_iid` existing in the target project. | Idempotent read without side effects; author, timestamps, and attribute consistency confirmed. |
+| **Modification (PUT)** | Existing `issue_iid`; Reporter role permissions; payload with description or `state_event: "close"`. | Issue updated; if closed, `closed_at` timestamp is set and state transitions to `closed`. |
+| **Filtering & Pagination** | At least one closed issue present in the repository to validate matches. | Filtered list returned; array length constrained by `per_page=1`. |
+| **Deletion (DELETE)** | Existing `issue_iid`; **access token with Project Owner or Administrator role**. | Issue permanently deleted; subsequent reads on that `iid` return `404 Not Found`. |
 
-### 3.3 Jerarquía de ámbitos de variables en Postman
+### 3.3 Variable scopes hierarchy in Postman
 
-Postman organiza las variables en una jerarquía de alcance estricta, evaluada de mayor a menor prioridad en tiempo de ejecución:
+Postman resolves variables following a strict scope hierarchy (from narrowest to widest):
 
 ```
 [Local / Script] → [Data / Iteration] → [Environment] → [Collection] → [Global]
-   (Mayor prioridad)                                                (Menor prioridad)
+  (Highest priority)                                                  (Lowest priority)
 ```
 
-1. **Global:** Valores disponibles en todo el espacio de trabajo. Se evitaron para no afectar otras colecciones del equipo.
-2. **Environment:** Almacena valores específicos del entorno de ejecución (`base_url`, `project_id`, `token_reporter`, `token_owner`). Permite cambiar fácilmente entre servidores de prueba sin modificar las peticiones.
-3. **Collection:** Ámbito ideal para compartir datos generados durante la prueba entre solicitudes (`run_id`, `issue_iid`, `issue_id`, `e2e_issue_iid`). Los valores persisten durante la corrida pero no contaminan el ambiente global.
-4. **Data:** Variables inyectadas mediante archivos CSV/JSON en ejecuciones por lotes de Collection Runner o Newman.
-5. **Local:** Variables definidas con `let` o `const` dentro de scripts `prerequest` o `test`, vivas solo durante la transacción de esa petición.
+1. **Global:** Available across the entire workspace. Avoided to prevent collision with other group collections.
+2. **Environment:** Used for deployment targets and environment configurations (`base_url`, `project_id`, `token_reporter`, `token_owner`). Allows switching environments without modifying requests.
+3. **Collection:** Used to store dynamically generated test identifiers (`run_id`, `issue_iid`, `issue_id`, `e2e_issue_iid`). These persist across requests within the run without polluting global state.
+4. **Data:** Injected via external CSV/JSON files in batch runs.
+5. **Local:** Scoped with `let` or `const` inside individual pre-request or test scripts.
 
-### 3.4 Encadenamiento de peticiones y variables compartidas
+### 3.4 Dynamic request chaining and shared variables
 
-Para lograr pruebas desacopladas y autónomas, se implementó el encadenamiento dinámico:
+To decouple test cases and enable autonomous execution without hardcoded IDs:
 
-1. **Pre-request de colección:**
+1. **Collection pre-request script:**
    ```javascript
    let runId = pm.collectionVariables.get("run_id");
    if (!runId) {
@@ -143,86 +138,94 @@ Para lograr pruebas desacopladas y autónomas, se implementó el encadenamiento 
    pm.collectionVariables.set("issue_title", `sqe3-issue-${runId}`);
    pm.collectionVariables.set("e2e_issue_title", `sqe3-e2e-issue-${runId}`);
    ```
-2. **Extracción y persistencia en la creación (`TC_ISSUE_POST_001`):**
+2. **Dynamic extraction on creation (`TC_ISSUE_POST_001`):**
    ```javascript
    const jsonData = pm.response.json();
    pm.collectionVariables.set("issue_iid", String(jsonData.iid));
    pm.collectionVariables.set("issue_id", String(jsonData.id));
    ```
-3. **Consumo en solicitudes posteriores:**
-   - La URL de consulta pasa a ser `{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}`.
-   - La solicitud de cierre `TC_ISSUE_PUT_002` y la de eliminación `TC_ISSUE_DELETE_001` utilizan el mismo `{{issue_iid}}` sin requerir codificación rígida (*hardcoding*).
+3. **Consumption in subsequent requests:**
+   Subsequent GET, PUT, and DELETE requests dynamically reference `{{issue_iid}}` in their request paths:
+   `{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}`
 
 ---
 
-<a id="actividad-4"></a>
+<a id="activity-4"></a>
 
-## Actividad #4: Convenciones de Organización y Ejecución Automática
+## Activity #4: Structure and automated execution
 
-### 4.1 Convenciones de estructura y nomenclatura
+### 4.1 Collection structure and conventions
 
-- **Nombres de peticiones:** Se utilizó el prefijo del caso de prueba formal: `TC_ISSUE_[METHOD]_[NUM] - [Descripción funcional]` (ej. `TC_ISSUE_POST_001 - Create an issue with valid data`).
-- **Encabezados consistentes:** Todas las peticiones de mutación configuran explícitamente `Content-Type: application/json`.
-- **Desacoplamiento de E2E:** El flujo de ciclo de vida completo se agrupó en una subcarpeta dedicada (`TC_ISSUE_E2E_001 - Complete issue lifecycle`) que maneja sus propias variables (`e2e_issue_iid`) para no interferir con las pruebas atómicas unitarias.
-- **Petición final de limpieza:** Se incluye una petición de cleanup que purga recursos auxiliares creados durante la ejecución.
+- **Naming standard:** Stable case ID followed by method and action: `TC_ISSUE_[METHOD]_[NUM] - [Description]` (e.g., `TC_ISSUE_POST_001 - Create an issue with valid data`).
+- **Explicit headers:** All mutation requests explicitly set `Content-Type: application/json`.
+- **E2E isolation:** The end-to-end lifecycle flow is grouped into a dedicated folder (`TC_ISSUE_E2E_001 - Complete issue lifecycle`) using its own variables (`e2e_issue_iid`) to avoid interfering with atomic tests.
+- **Cleanup step:** A dedicated `Cleanup` request ensures leftover test resources are removed from the test project.
 
-### 4.2 Ejecución automática
+### 4.2 Automated execution with Postman Runner and Newman CLI
 
-La colección está preparada para ejecutarse automáticamente mediante dos métodos:
+The collection is designed for automated execution both in Postman's GUI and via CLI:
 
-#### A. Postman Collection Runner (Interfaz Gráfica)
-1. Seleccionar la colección `SQE3 Lab 2 - Group 4 - Yeraldin Vasquez - Project Issues`.
-2. Elegir el ambiente configurado con las credenciales locales.
-3. Marcar la opción de persistencia de variables durante la corrida.
-4. Ejecutar: Postman corre secuencialmente todas las peticiones reportando el resumen de aprobados y fallidos.
+#### Postman Collection Runner
+1. Select the collection `SQE3 Lab 2 - Group 4 - Yeraldin Vasquez - Project Issues`.
+2. Select the configured local environment.
+3. Enable variable persistence during the run.
+4. Run: Postman executes all 16 requests sequentially, reporting pass/fail status.
 
-#### B. Ejecución desatendida por línea de comandos (Newman CLI)
-Newman permite ejecutar la colección en terminales locales o en pipelines de CI/CD (GitLab CI, GitHub Actions):
-
+#### CLI execution via Newman
 ```bash
-# Ejecución directa con reporter estándar de consola
 npx newman run wiki/labs/l2/postman/yeraldin-lab2/yeraldin-project-issues.postman_collection.json \
-  -e mi_ambiente_local.json \
+  -e local_environment.json \
   --reporters cli
 ```
 
-**Comando de verificación sintáctica en seco (sin red):**
+Dry-run syntax validation check:
 ```bash
 node -e "
-const c = require("./wiki/labs/l2/postman/yeraldin-lab2/yeraldin-project-issues.postman_collection.json");
-console.log("Coleccion valida:", c.info.name, "- Total peticiones:", c.item.length);
+const c = require('./wiki/labs/l2/postman/yeraldin-lab2/yeraldin-project-issues.postman_collection.json');
+console.log('Collection:', c.info.name, '- Items:', c.item.length);
 "
 ```
 
 ---
 
-<a id="actividad-5"></a>
+<a id="activity-5"></a>
 
-## Actividad #5: Evaluación de Pares y Retroalimentación
+## Activity #5: Review and feedback
 
-### 5.1 Revisión cruzada de la implementación de Alexis Frene (Project Labels)
+### 5.1 Peer review of Alexis Frene's Project Labels implementation
 
-Se analizó la colección `alexis-project-labels.postman_collection.json` y su documentación en `l2_alexis.md`:
+I evaluated Alexis Frene's implementation for the Project Labels feature (`wiki/labs/l2/postman/alexis-lab2/`):
 
-| Criterio evaluado | Observación técnica | Valoración |
+| Evaluation criteria | Technical observation | Rating |
 | --- | --- | --- |
-| **Complejidad y cobertura** | 17 solicitudes que cubren creación, consulta por título codificado, filtros de labels archivados, renombrado y límites de prioridad. Buen balance entre casos positivos y negativos. | **Excelente (Alta cobertura)** |
-| **Manejo de variables** | Genera `run_id` y realiza codificación URI (`encodeURIComponent`) de nombres de labels en el script de pre-solicitud, lo que evita errores con espacios o caracteres especiales en rutas. | **Sobresaliente** |
-| **Aserciones** | Comprueba códigos de estado (200, 201, 400, 401, 404) y atributos clave (`name`, `color`). | **Bueno** |
-| **Facilidad de uso** | El archivo de ambiente de ejemplo es claro y no contiene credenciales expuestas. Las instrucciones de ejecución son fáciles de seguir. | **Excelente** |
+| **Complexity and coverage** | 17 requests covering creation, encoded title retrieval, archived label filters, renaming, and priority boundaries. Good balance between positive, negative, and boundary scenarios. | **High coverage** |
+| **Variable management** | Generates dynamic `run_id` and performs URL encoding (`encodeURIComponent`) on label names in pre-request scripts, preventing path routing issues with spaces or special characters. | **Excellent** |
+| **Assertions** | Validates status codes (200, 201, 400, 401, 404) and core attributes (`name`, `color`). | **Good** |
+| **Ease of use** | Clean environment template without exposed credentials; clear README instructions. | **Very good** |
 
-### 5.2 Retroalimentación constructiva para el equipo
+### 5.2 Constructive feedback for the team
 
-1. **Aserciones de cabeceras:** Se recomienda a los compañeros incorporar validaciones de cabeceras clave como `pm.response.headers.get("Content-Type")` y cabeceras de paginación (`x-per-page`), ya que enriquecen las verificaciones exigidas en la Actividad #2.
-2. **Tiempos de respuesta:** Incorporar comprobaciones de latencia (`pm.expect(pm.response.responseTime).to.be.below(...)`) en las peticiones GET para certificar que el rendimiento de la API se mantiene dentro de umbrales aceptables.
-3. **Estandarización de formato de payload:** Mientras que Project Labels utiliza parámetros codificados en formulario (`urlencoded`) por particularidades de ese endpoint de GitLab, Project Issues utiliza `application/json` puro; es importante mantener esta distinción clara en el reporte grupal.
+1. **Header assertions:** Recommend adding explicit `pm.response.headers.get("Content-Type")` and pagination header assertions (`x-per-page`) to further solidify REST contract verification across all collections.
+2. **Latency thresholds:** Include response time checks (`pm.expect(pm.response.responseTime).to.be.below(...)`) on GET requests to confirm API performance stays within acceptable limits.
+3. **Payload formatting distinction:** Note that while Project Labels uses form-urlencoded parameters due to GitLab API quirks on that route, Project Issues uses `application/json` payloads.
 
 ---
 
-<a id="entregables"></a>
+<a id="deliverables"></a>
 
-## Entregables de Postman
+## Postman deliverables
 
-- [Colección Postman](postman/yeraldin-lab2/yeraldin-project-issues.postman_collection.json)
-- [Ambiente de ejemplo sin credenciales](postman/yeraldin-lab2/yeraldin-project-issues.postman_environment.example.json)
-- [Instrucciones de configuración y Newman](postman/yeraldin-lab2/README.md)
+- [Postman collection](postman/yeraldin-lab2/yeraldin-project-issues.postman_collection.json)
+- [Credential-free environment example](postman/yeraldin-lab2/yeraldin-project-issues.postman_environment.example.json)
+- [Setup and execution instructions](postman/yeraldin-lab2/README.md)
+
+---
+
+<a id="sources"></a>
+
+## Sources
+
+- [GitLab REST API Issues](https://docs.gitlab.com/api/issues/).
+- [GitLab REST API Authentication](https://docs.gitlab.com/api/rest/authentication/).
+- [Postman Sandbox API Reference](https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/overview/).
+- [Lab 1 — Yeraldin](../l1/l1_yeraldin.md).
