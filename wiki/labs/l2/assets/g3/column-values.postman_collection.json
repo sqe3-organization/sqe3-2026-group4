@@ -1,0 +1,3159 @@
+{
+  "info": {
+    "_postman_id": "37b31eaa-de33-5d26-b826-e889a8212bc5",
+    "name": "Column values - monday.com",
+    "description": "TC-COLVAL tests from Lab 1. Run with a 4000 ms delay between requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Board setup",
+      "description": "Creates the board for the tests.",
+      "item": [
+        {
+          "name": "AUTH-001: Authorized request with the API token returns the user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { me { id name email } }\",\n  \"variables\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the user name', function () {",
+                  "    pm.expect(jsonData.data.me.name).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create test board",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($name: String!) { create_board(board_name: $name, board_kind: private, empty: true) { id } }\",\n  \"variables\": {\n    \"name\": \"AT - SQE3 Lab 2 Column values run\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the board id', function () {",
+                  "    pm.expect(jsonData.data.create_board.id).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set('BOARD_ID', jsonData.data.create_board.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create status column",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $defaults: JSON) { create_column(board_id: $board, id: \\\"status\\\", title: \\\"Status\\\", column_type: status, defaults: $defaults) { id type } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"defaults\": \"{\\\"labels\\\":{\\\"0\\\":\\\"Working on it\\\",\\\"1\\\":\\\"Done\\\",\\\"2\\\":\\\"Stuck\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Column id should be status', function () {",
+                  "    pm.expect(jsonData.data.create_column.id).to.eql('status');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create date4 column",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!) { create_column(board_id: $board, id: \\\"date4\\\", title: \\\"Date\\\", column_type: date) { id type } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Column id should be date4', function () {",
+                  "    pm.expect(jsonData.data.create_column.id).to.eql('date4');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create text column",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!) { create_column(board_id: $board, id: \\\"text\\\", title: \\\"Text\\\", column_type: text) { id type } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Column id should be text', function () {",
+                  "    pm.expect(jsonData.data.create_column.id).to.eql('text');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Positive",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-COLVAL-001: Update status, date and text in one request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Done\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\"},\\\"text\\\":\\\"Payment checked\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-002: Query the item after the update shows the new values",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Done\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\"},\\\"text\\\":\\\"Payment checked\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Done\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Done\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-15\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-15\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Payment checked\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Payment checked\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-003: Update only status, date and text keep their value",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Stuck\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Stuck\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Stuck\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-004: Update status using the label index",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"index\\\":1}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Done\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Done\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-005: Update date with date and time",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\",\\\"time\\\":\\\"14:30:00\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-15\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-15\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "    pm.test('[Data integrity] - Time should be 14:30:00', function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).time).to.eql('14:30:00');",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-006: Clear the three columns sending null",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":null,\\\"date4\\\":null,\\\"text\\\":null}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    check.data.items[0].column_values.forEach(c => {",
+                  "        pm.test(`[Data integrity] - ${c.id} should be empty`, function () {",
+                  "            pm.expect(c.text || '').to.eql('');",
+                  "            pm.expect(c.value).to.eql(null);",
+                  "        });",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-007: New status label is created with create_labels_if_missing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Positive\nPriority: Low\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values, create_labels_if_missing: true) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"QA Review\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be QA Review\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"QA Review\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const board = await sendQuery(\"query ($ids: [ID!]) { boards(ids: $ids) { columns(ids: [\\\"status\\\"]) { settings_str } } }\", { ids: [pm.collectionVariables.get('BOARD_ID')] });",
+                  "    const labels = JSON.parse(board.data.boards[0].columns[0].settings_str).labels;",
+                  "    pm.test('[Data integrity] - QA Review should exist on the board', function () {",
+                  "        pm.expect(Object.values(labels)).to.include('QA Review');",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Board should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negative",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-COLVAL-008: Update with an invalid token is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{INVALID_TOKEN}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Done\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\"},\\\"text\\\":\\\"Payment checked\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Error code should be NOT_AUTHENTICATED', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql('NOT_AUTHENTICATED');",
+                  "});",
+                  "pm.test('Response should not contain data', function () {",
+                  "    pm.expect(jsonData.data).to.be.undefined;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-009: Malformed JSON in column_values returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"text\\\":\\\"Broken\\\"\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"invalid value\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-010: Column id that does not exist returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"fake_column_123\\\":\\\"Hello\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"column ID\");",
+                  "});",
+                  "pm.test('Error code should be InvalidColumnIdException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"InvalidColumnIdException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-011: Status label that does not exist returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Finished\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"label\");",
+                  "});",
+                  "pm.test('Error code should be ColumnValueException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"ColumnValueException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-012: Valid column together with a wrong column id saves nothing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: High\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"text\\\":\\\"Should not save\\\",\\\"fake_column_123\\\":\\\"x\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"column ID\");",
+                  "});",
+                  "pm.test('Error code should be InvalidColumnIdException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"InvalidColumnIdException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-013: Status index that does not exist returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"index\\\":99}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"label does not exist\");",
+                  "});",
+                  "pm.test('Error code should be ColumnValueException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"ColumnValueException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-014: Date in a wrong format returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"date4\\\":{\\\"date\\\":\\\"15/11/2026\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"invalid value\");",
+                  "});",
+                  "pm.test('Error code should be ColumnValueException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"ColumnValueException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-015: item_id that does not exist returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: Medium\n\nPreconditions:\nNone\n\nCleanup:\nNone",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"1\",\n    \"values\": \"{\\\"text\\\":\\\"Hello\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"Item not found\");",
+                  "});",
+                  "pm.test('Error code should be InvalidItemIdException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"InvalidItemIdException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-016: board_id that does not exist returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Negative\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"1\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"text\\\":\\\"Hello\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"board does not exist\");",
+                  "});",
+                  "pm.test('Error code should be InvalidBoardIdException', function () {",
+                  "    pm.expect(jsonData.errors[0].extensions.code).to.eql(\"InvalidBoardIdException\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Boundary",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-COLVAL-017: Leap day date is saved",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Boundary\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"date4\\\":{\\\"date\\\":\\\"2028-02-29\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2028-02-29\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2028-02-29\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-018: 29 Feb in a non leap year returns an error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Boundary\nPriority: Medium\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"date4\\\":{\\\"date\\\":\\\"2027-02-29\\\"}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should contain an errors array', function () {",
+                  "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.test('Error message should be the expected one', function () {",
+                  "    pm.expect(jsonData.errors[0].message).to.include(\"invalid value\");",
+                  "});",
+                  "pm.test('Response should not contain item data', function () {",
+                  "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Initial text\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Initial text\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-COLVAL-019: Text with special characters is saved the same",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "description": "Type: Boundary\nPriority: Low\n\nPreconditions:\nCreate an item by API\n\nCleanup:\nDelete the item by API",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"text\\\":\\\"Ñandú QA #1 <test> & \\\\\\\"quotes\\\\\\\"\\\"}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// precondition: create the item by API",
+                  "pm.collectionVariables.set('itemName', `AT - ${pm.variables.replaceIn('{{$randomProductName}}')}`);",
+                  "try {",
+                  "    const created = await sendQuery(\"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\", {",
+                  "        board: pm.collectionVariables.get('BOARD_ID'),",
+                  "        name: pm.collectionVariables.get('itemName'),",
+                  "        values: \"{\\\"status\\\":{\\\"label\\\":\\\"Working on it\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-01\\\"},\\\"text\\\":\\\"Initial text\\\"}\"",
+                  "    });",
+                  "    pm.collectionVariables.set('ITEM_ID', created.data.create_item.id);",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sendQuery = async (query, variables) => {",
+                  "    const response = await pm.sendRequest({",
+                  "        url: pm.environment.get('BASE_URL'),",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'API-Version': pm.environment.get('API_VERSION'),",
+                  "            'Authorization': pm.environment.get('API_TOKEN')",
+                  "        },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ query, variables }) }",
+                  "    });",
+                  "    return response.json();",
+                  "};",
+                  "",
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the item id', function () {",
+                  "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                  "});",
+                  "",
+                  "// data integrity",
+                  "try {",
+                  "    const check = await sendQuery(\"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\", { ids: [pm.collectionVariables.get('ITEM_ID')] });",
+                  "    const columns = {};",
+                  "    check.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                  "    pm.test(\"[Data integrity] - Status should be Working on it\", function () {",
+                  "        pm.expect(columns.status.text).to.eql(\"Working on it\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Date should be 2026-11-01\", function () {",
+                  "        pm.expect(JSON.parse(columns.date4.value).date).to.eql(\"2026-11-01\");",
+                  "    });",
+                  "    pm.test(\"[Data integrity] - Text should be Ñandú QA #1 <test> & \\\"quotes\\\"\", function () {",
+                  "        pm.expect(columns.text.text).to.eql(\"Ñandú QA #1 <test> & \\\"quotes\\\"\");",
+                  "    });",
+                  "} catch (err) {",
+                  "    pm.test('[Data integrity] - Item should be readable', function () { throw err; });",
+                  "}",
+                  "",
+                  "// cleanup: delete the item by API",
+                  "try {",
+                  "    await sendQuery(\"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\", { item: pm.collectionVariables.get('ITEM_ID') });",
+                  "} catch (err) {",
+                  "    console.error(err);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "E2E",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-COLVAL-020: Full flow of column values on a new item",
+          "description": "Type: E2E\nPriority: High\n\nPreconditions:\nNone\n\nCleanup:\nThe item is deleted in step 6",
+          "item": [
+            {
+              "name": "TC-COLVAL-020 Step 1: Create item",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"mutation ($board: ID!, $name: String!, $values: JSON) { create_item(board_id: $board, item_name: $name, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"name\": \"AT - COLVAL E2E\",\n    \"values\": \"{}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "pm.test('Response body should contain the new id', function () {",
+                      "    pm.expect(jsonData.data.create_item.id).to.be.a('string').and.not.empty;",
+                      "});",
+                      "pm.collectionVariables.set('ITEM_ID', jsonData.data.create_item.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 2: Update three columns",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Done\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\"},\\\"text\\\":\\\"E2E text\\\"}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "pm.test('Response body should contain the item id', function () {",
+                      "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 3: Read the new values",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\",\n  \"variables\": {\n    \"ids\": [\n      \"{{ITEM_ID}}\"\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "const columns = {};",
+                      "jsonData.data.items[0].column_values.forEach(c => { columns[c.id] = c; });",
+                      "pm.test('Status should be Done', function () {",
+                      "    pm.expect(columns.status.text).to.eql('Done');",
+                      "});",
+                      "pm.test('Date should be 2026-11-15', function () {",
+                      "    pm.expect(JSON.parse(columns.date4.value).date).to.eql('2026-11-15');",
+                      "});",
+                      "pm.test('Text should be E2E text', function () {",
+                      "    pm.expect(columns.text.text).to.eql('E2E text');",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 4: Clear columns",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":null,\\\"date4\\\":null,\\\"text\\\":null}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "pm.test('Response body should contain the item id', function () {",
+                      "    pm.expect(jsonData.data.change_multiple_column_values.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 5: Read the empty columns",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"query ($ids: [ID!]) { items(ids: $ids) { id state column_values(ids: [\\\"status\\\", \\\"date4\\\", \\\"text\\\"]) { id text value } } }\",\n  \"variables\": {\n    \"ids\": [\n      \"{{ITEM_ID}}\"\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "jsonData.data.items[0].column_values.forEach(c => {",
+                      "    pm.test(`${c.id} should be empty`, function () {",
+                      "        pm.expect(c.text || '').to.eql('');",
+                      "        pm.expect(c.value).to.eql(null);",
+                      "    });",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 6: Delete item",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"mutation ($item: ID!) { delete_item(item_id: $item) { id } }\",\n  \"variables\": {\n    \"item\": \"{{ITEM_ID}}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "pm.test('Response body should contain the deleted id', function () {",
+                      "    pm.expect(jsonData.data.delete_item.id).to.eql(pm.collectionVariables.get('ITEM_ID'));",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 7: Check item state",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"query ($ids: [ID!]) { items(ids: $ids) { id state } }\",\n  \"variables\": {\n    \"ids\": [\n      \"{{ITEM_ID}}\"\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should not have errors', function () {",
+                      "    pm.expect(jsonData.errors).to.be.undefined;",
+                      "});",
+                      "pm.test('Item should not be active', function () {",
+                      "    const items = jsonData.data.items;",
+                      "    if (items.length) pm.expect(items[0].state).to.eql('deleted');",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "TC-COLVAL-020 Step 8: Update the deleted item",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "API-Version",
+                    "value": "{{API_VERSION}}"
+                  }
+                ],
+                "url": "{{BASE_URL}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"mutation ($board: ID!, $item: ID!, $values: JSON!) { change_multiple_column_values(board_id: $board, item_id: $item, column_values: $values) { id name } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\",\n    \"item\": \"{{ITEM_ID}}\",\n    \"values\": \"{\\\"status\\\":{\\\"label\\\":\\\"Done\\\"},\\\"date4\\\":{\\\"date\\\":\\\"2026-11-15\\\"},\\\"text\\\":\\\"E2E text\\\"}\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// status code",
+                      "pm.test('Status code should be 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// response body",
+                      "const jsonData = pm.response.json();",
+                      "pm.test('Response should contain an errors array', function () {",
+                      "    pm.expect(jsonData.errors).to.be.an('array').that.is.not.empty;",
+                      "});",
+                      "pm.test('Error message should be the expected one', function () {",
+                      "    pm.expect(jsonData.errors[0].message).to.include(\"inactive items\");",
+                      "});",
+                      "pm.test('Response should not contain item data', function () {",
+                      "    pm.expect(jsonData.data && jsonData.data.change_multiple_column_values).to.not.be.ok;",
+                      "});",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Board cleanup",
+      "description": "Deletes the board.",
+      "item": [
+        {
+          "name": "Delete test board",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "API-Version",
+                "value": "{{API_VERSION}}"
+              }
+            ],
+            "url": "{{BASE_URL}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ($board: ID!) { delete_board(board_id: $board) { id } }\",\n  \"variables\": {\n    \"board\": \"{{BOARD_ID}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// status code",
+                  "pm.test('Status code should be 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// response body",
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Response should not have errors', function () {",
+                  "    pm.expect(jsonData.errors).to.be.undefined;",
+                  "});",
+                  "pm.test('Response body should contain the board id', function () {",
+                  "    pm.expect(jsonData.data.delete_board.id).to.eql(pm.collectionVariables.get('BOARD_ID'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const limit = Number(pm.environment.get('RESPONSE_TIME_LIMIT_MS') || 500);",
+          "const elapsed = Math.round(pm.response.responseTime);",
+          "",
+          "pm.test('Content-Type should be present', function () {",
+          "    pm.response.to.have.header('Content-Type');",
+          "});",
+          "",
+          "if (elapsed <= limit) {",
+          "    pm.test(`Response time should be less than ${limit}ms`, function () {});",
+          "} else {",
+          "    // slow responses are only noted, they don't fail the test",
+          "    pm.test.skip(`Response time was ${elapsed} ms (target ${limit} ms)`, function () {});",
+          "}"
+        ]
+      }
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "Authorization",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{API_TOKEN}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "BOARD_ID",
+      "value": ""
+    },
+    {
+      "key": "ITEM_ID",
+      "value": ""
+    },
+    {
+      "key": "itemName",
+      "value": ""
+    }
+  ]
+}
