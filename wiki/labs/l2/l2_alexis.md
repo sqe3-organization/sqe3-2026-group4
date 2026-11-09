@@ -1,100 +1,46 @@
-# Lab 2 — Alexis: Feature pending
+# Lab 2 - Alexis Frene: Postman Project labels
 
-[Back to the group lab](l2.md)
+[Back to the group Lab 2](l2.md)  
+[Back to the Lab 1 design](../l1/l1_alexis.md)
 
-## Contents
+## Feature
 
-- [Activity 1: Tool setup, sample requests and authorization](#activity-1)
-- [Activity 2: Assertions and Lab 1 implementation](#activity-2)
-- [Activity 3: Preconditions, postconditions and variables](#activity-3)
-- [Activity 4: Structure and automated execution](#activity-4)
-- [Activity 5: Review and feedback](#activity-5)
-- [Sources](#sources)
+This implementation automates the GitLab Project labels API selected in Lab 1.
+The source design contains the endpoint contract, use case, acceptance
+criteria and 17 LLTC cases.
 
----
+## Postman deliverables
 
-<a id="activity-1"></a>
+- [Collection](postman/alexis-lab2/alexis-project-labels.postman_collection.json)
+- [Credential-free environment example](postman/alexis-lab2/alexis-project-labels.postman_environment.example.json)
+- [Setup and execution instructions](postman/alexis-lab2/README.md)
 
-## Activity #1: Tool setup, sample requests and authorization
+## Implemented capabilities
 
-### 1.1 Individual sample API
+- Uses `base_url` and `project_id` as configurable variables.
+- Keeps manager and reader tokens empty and local to the user's Postman setup.
+- Generates unique label names from `run_id`.
+- URL-encodes label names before using them as path parameters.
+- Sends create and update data as form-encoded fields, as required by the
+  Project labels API.
+- Saves IDs returned by create requests for later retrieval, update and cleanup.
+- Checks response status and relevant response fields in Postman test scripts.
+- Includes cleanup requests and an end-to-end lifecycle flow.
 
-Pending.
+## Coverage
 
-### 1.2 CRUD collection
+The collection implements the cases from [Activity 4 in Lab 1](../l1/l1_alexis.md#actividad-4):
 
-Pending.
+- Create, retrieve, list, search, pagination and archived filtering.
+- Missing required fields, invalid data and nonexistent resources.
+- Invalid authentication and insufficient mutation permissions.
+- Update, rename, priority boundary and deletion behavior.
+- Complete create-read-update-filter-delete lifecycle.
 
-### 1.3 Assigned application authorization
+## Execution status
 
-Pending.
+The collection is automated but has not been executed against the team's live
+test project in this repository. Execution evidence must be captured with
+sanitized requests and without committing tokens, cookies or project secrets.
 
----
-
-<a id="activity-2"></a>
-
-## Activity #2: Assertions and Lab 1 implementation
-
-### 2.1 Implemented test cases
-
-Pending.
-
-### 2.2 Post-response assertions
-
-Pending.
-
----
-
-<a id="activity-3"></a>
-
-## Activity #3: Preconditions, postconditions and variables
-
-### 3.1 Preconditions and postconditions
-
-Pending.
-
-### 3.2 Variable scopes and environments
-
-Pending.
-
-[Shared GitLab Project environment](assets/GitLab_Project.postman_environment.json).
-
----
-
-<a id="activity-4"></a>
-
-## Activity #4: Structure and automated execution
-
-### 4.1 Collection structure and conventions
-
-Pending.
-
-### 4.2 Execution
-
-Pending.
-
-### 4.3 Results and remaining work
-
-Pending.
-
----
-
-<a id="activity-5"></a>
-
-## Activity #5: Review and feedback
-
-### 5.1 Reviewed implementation
-
-Pending.
-
-### 5.2 Feedback
-
-Pending.
-
----
-
-<a id="sources"></a>
-
-## Sources
-
-Pending.
+Activities 4 and 5 of the group Lab 2 are outside this individual deliverable.

@@ -48,6 +48,8 @@ For these cases I use a private test project with Labels enabled and the followi
 | `label_name_url` | URL-encoded value of `label_name`, used in a path parameter. |
 | `label_id` | Numeric ID returned by the create response. |
 | `label_name_updated` | New unique name used by rename cases. |
+| `label_name_updated_url` | URL-encoded value of `label_name_updated`, used after a rename. |
+| `archived_label_id` | Numeric ID returned by the archived-label boundary case. |
 
 The test project must be disposable or dedicated to the team. No token, cookie or real project identifier is stored in this repository. Label tests use `PRIVATE-TOKEN: {{token_label_manager}}`; read requests may use `{{token_label_reader}}`. For create and update requests, send form data and do not assume that a JSON content type is accepted.
 
@@ -75,6 +77,8 @@ DELETE {{base_url}}/projects/{{project_id}}/labels/{{label_name_updated_url}}
 ```
 
 The browser capture is evidence of the interaction, while the REST cases below validate the documented API contract. Screenshots should show only the request method, endpoint, status and sanitized payload; credentials must be hidden before submission.
+
+The Lab 2 Postman implementation is available in [the individual collection](../l2/postman/alexis-lab2/alexis-project-labels.postman_collection.json), with a [credential-free environment template](../l2/postman/alexis-lab2/alexis-project-labels.postman_environment.example.json) and setup instructions in [the Lab 2 README](../l2/postman/alexis-lab2/README.md).
 
 <a id="actividad-3"></a>
 
@@ -156,6 +160,8 @@ The criteria below are based on the [Project labels API](https://docs.gitlab.com
 4. Correct the generated list against the documentation: `name` and `color` are required for creation, updates require `new_name` or `color`, priority cannot be negative, and label titles in paths must be URL-encoded.
 5. Keep uncertain validation and permission codes as observations to confirm during exploration instead of treating a guess as an assertion.
 6. Convert the validated scenarios into LLTC cases with independent data, cleanup, type and priority, then review the cases against the team's conventions in the group document.
+
+The Postman collection implements the requests and assertions for these cases. It uses form-encoded bodies for create and update operations, stores IDs from responses, checks status and response data, and keeps cleanup separate. Execution evidence still has to be captured with the team's test project and credentials.
 
 ### 4.3 Low-level test cases (LLTC)
 

@@ -1,0 +1,1114 @@
+{
+  "info": {
+    "name": "SQE3 Lab 2 - Group 4 - Yeraldin Vasquez - Project Issues",
+    "description": "Lab 2 individual Postman collection for the GitLab Project issues REST API v4. Implements functional, boundary, negative, authorization, and E2E lifecycle tests with comprehensive assertions and zero committed credentials.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "let runId = pm.collectionVariables.get(\"run_id\");",
+          "if (!runId) {",
+          "  runId = String(Date.now());",
+          "  pm.collectionVariables.set(\"run_id\", runId);",
+          "}",
+          "const values = {",
+          "  issue_title: `sqe3-issue-${runId}`,",
+          "  issue_title_updated: `sqe3-issue-updated-${runId}`,",
+          "  e2e_issue_title: `sqe3-e2e-issue-${runId}`,",
+          "  labels_issue_title: `sqe3-labels-issue-${runId}`",
+          "};",
+          "Object.entries(values).forEach(([key, val]) => pm.collectionVariables.set(key, val));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://gitlab.com/api/v4"
+    },
+    {
+      "key": "project_id",
+      "value": ""
+    },
+    {
+      "key": "token_reporter",
+      "value": ""
+    },
+    {
+      "key": "token_owner",
+      "value": ""
+    },
+    {
+      "key": "token_guest",
+      "value": ""
+    },
+    {
+      "key": "run_id",
+      "value": ""
+    },
+    {
+      "key": "issue_iid",
+      "value": ""
+    },
+    {
+      "key": "issue_id",
+      "value": ""
+    },
+    {
+      "key": "labels_issue_iid",
+      "value": ""
+    },
+    {
+      "key": "e2e_issue_iid",
+      "value": ""
+    },
+    {
+      "key": "issue_title",
+      "value": ""
+    },
+    {
+      "key": "issue_title_updated",
+      "value": ""
+    },
+    {
+      "key": "e2e_issue_title",
+      "value": ""
+    },
+    {
+      "key": "labels_issue_title",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "TC_ISSUE_POST_001 - Create an issue with valid data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"{{issue_title}}\",\n  \"description\": \"Defect report: unexpected status code in API call\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ]
+        },
+        "description": "Verifies that creating an issue with a valid title and description returns 201 Created and state opened."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.expect(pm.response.code).to.eql(201);",
+              "});",
+              "pm.test(\"Response contains valid issue data and opened state\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"iid\");",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "    pm.expect(jsonData.state).to.eql(\"opened\");",
+              "    pm.expect(jsonData.title).to.eql(pm.variables.get(\"issue_title\"));",
+              "    pm.expect(jsonData.description).to.eql(\"Defect report: unexpected status code in API call\");",
+              "    pm.collectionVariables.set(\"issue_iid\", String(jsonData.iid));",
+              "    pm.collectionVariables.set(\"issue_id\", String(jsonData.id));",
+              "});",
+              "pm.test(\"Content-Type header is JSON\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_POST_002 - Reject issue creation without a title",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Defect report missing required title\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ]
+        },
+        "description": "Validates that omitting the mandatory title attribute results in a 400 Bad Request error."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.expect(pm.response.code).to.eql(400);",
+              "});",
+              "pm.test(\"Response error mentions missing title\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"error\");",
+              "    pm.expect(jsonData.error).to.include(\"title is missing\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_POST_003 - Reject issue creation with an invalid token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "invalid_token_sqe3_unauthorized",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Unauthorized issue attempt\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ]
+        },
+        "description": "Verifies that supplying an invalid authentication token prevents issue creation and yields 401 Unauthorized."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.expect(pm.response.code).to.eql(401);",
+              "});",
+              "pm.test(\"Response message confirms unauthorized error\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"message\");",
+              "    pm.expect(jsonData.message).to.match(/401 Unauthorized/i);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_POST_004 - Create an issue with optional labels",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"{{labels_issue_title}}\",\n  \"description\": \"Defect report with bug and sqe3 labels\",\n  \"labels\": \"bug,sqe3\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ]
+        },
+        "description": "Checks that creating an issue with comma-separated labels successfully stores and returns them in the labels array."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.expect(pm.response.code).to.eql(201);",
+              "});",
+              "pm.test(\"Labels array contains assigned tags\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.labels).to.be.an(\"array\");",
+              "    pm.expect(jsonData.labels).to.include(\"bug\");",
+              "    pm.expect(jsonData.labels).to.include(\"sqe3\");",
+              "    pm.collectionVariables.set(\"labels_issue_iid\", String(jsonData.iid));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_GET_001 - Retrieve an existing issue by its iid",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{issue_iid}}"
+          ]
+        },
+        "description": "Verifies that an existing issue can be retrieved by its project-scoped internal ID (iid) with status 200 OK."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "pm.test(\"Retrieved issue matches expected iid and has complete attributes\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(String(jsonData.iid)).to.eql(pm.variables.get(\"issue_iid\"));",
+              "    pm.expect(jsonData.state).to.be.oneOf([\"opened\", \"closed\"]);",
+              "    pm.expect(jsonData).to.have.property(\"author\");",
+              "    pm.expect(jsonData).to.have.property(\"created_at\");",
+              "});",
+              "pm.test(\"Response time is below 2500ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2500);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_GET_002 - Reject retrieval of a nonexistent issue",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/999999999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "999999999"
+          ]
+        },
+        "description": "Verifies that requesting a nonexistent issue iid returns 404 Not Found."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.expect(pm.response.code).to.eql(404);",
+              "});",
+              "pm.test(\"Error message indicates resource not found\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.match(/404 Not Found/i);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_PUT_001 - Update an issue description",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated defect description with root cause analysis\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{issue_iid}}"
+          ]
+        },
+        "description": "Updates the description of an existing issue, ensuring the title is retained and status 200 OK is returned."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "pm.test(\"Description updated and title retained\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.description).to.eql(\"Updated defect description with root cause analysis\");",
+              "    pm.expect(jsonData.title).to.eql(pm.variables.get(\"issue_title\"));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_PUT_002 - Close an issue using state_event",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"state_event\": \"close\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{issue_iid}}"
+          ]
+        },
+        "description": "Closes an open issue using state_event: close and confirms that state transitions to closed."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "pm.test(\"Issue state transitioned to closed\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.state).to.eql(\"closed\");",
+              "    pm.expect(jsonData).to.have.property(\"closed_at\");",
+              "    pm.expect(jsonData.closed_at).to.not.be.null;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_PUT_003 - Reject updating a nonexistent issue",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Attempt to update nonexistent issue\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/999999999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "999999999"
+          ]
+        },
+        "description": "Verifies that updating a nonexistent issue iid returns 404 Not Found."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.expect(pm.response.code).to.eql(404);",
+              "});",
+              "pm.test(\"Error message confirms resource not found\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.match(/404 Not Found/i);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_GET_003 - Filter project issues by closed state",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues?state=closed",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ],
+          "query": [
+            {
+              "key": "state",
+              "value": "closed"
+            }
+          ]
+        },
+        "description": "Filters project issues by state=closed and verifies that every element in the array has state closed."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "pm.test(\"All returned items in array have state closed\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an(\"array\");",
+              "    jsonData.forEach(function (issue) {",
+              "        pm.expect(issue.state).to.eql(\"closed\");",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_GET_004 - Query issues with pagination boundary per_page=1",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_reporter}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues?per_page=1&page=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "1"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        },
+        "description": "Tests boundary pagination parameter per_page=1 and verifies headers x-per-page, x-page and array length <= 1."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "pm.test(\"Response array length is at most 1 item\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an(\"array\");",
+              "    pm.expect(jsonData.length).to.be.at.most(1);",
+              "});",
+              "pm.test(\"Pagination headers are present and consistent\", function () {",
+              "    pm.expect(pm.response.headers.get(\"x-per-page\")).to.eql(\"1\");",
+              "    pm.expect(pm.response.headers.has(\"x-page\")).to.be.true;",
+              "    pm.expect(pm.response.headers.has(\"x-total\")).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_DELETE_001 - Delete an existing issue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_owner}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{issue_iid}}"
+          ]
+        },
+        "description": "Deletes the issue created in TC_ISSUE_POST_001 using Owner token, expecting 204 No Content or 200 OK."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 204 No Content or 200 OK\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_DELETE_002 - Reject deletion of a nonexistent issue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_owner}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/999999999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "999999999"
+          ]
+        },
+        "description": "Verifies that attempting to delete a nonexistent issue iid returns 404 Not Found."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.expect(pm.response.code).to.eql(404);",
+              "});",
+              "pm.test(\"Error message reports resource not found\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.match(/404 Not Found/i);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_E2E_002 - Protect issue modification from an unauthorized guest",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_guest}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Unauthorized modification attempt by guest\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{labels_issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{labels_issue_iid}}"
+          ]
+        },
+        "description": "Verifies authorization boundary: an unprivileged guest role cannot edit issues, returning 401, 403 or 404."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unauthorized or forbidden response for unprivileged guest\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403, 404]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_ISSUE_E2E_001 - Complete issue lifecycle",
+      "description": "End-to-end lifecycle flow: create issue -> read details -> update description and close -> filter closed issues -> delete issue -> verify deletion with 404.",
+      "item": [
+        {
+          "name": "E2E Step 1 - Create issue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_reporter}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{e2e_issue_title}}\",\n  \"description\": \"E2E lifecycle initial defect report\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 1: Status is 201 Created\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.title).to.eql(pm.variables.get(\"e2e_issue_title\"));",
+                  "    pm.expect(body.state).to.eql(\"opened\");",
+                  "    pm.collectionVariables.set(\"e2e_issue_iid\", String(body.iid));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2E Step 2 - Retrieve issue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_reporter}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues/{{e2e_issue_iid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues",
+                "{{e2e_issue_iid}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 2: Status is 200 OK\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(String(body.iid)).to.eql(pm.variables.get(\"e2e_issue_iid\"));",
+                  "    pm.expect(body.state).to.eql(\"opened\");",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2E Step 3 - Update description and close issue",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_reporter}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"E2E defect resolved and closed\",\n  \"state_event\": \"close\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues/{{e2e_issue_iid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues",
+                "{{e2e_issue_iid}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 3: Status is 200 OK\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.state).to.eql(\"closed\");",
+                  "    pm.expect(body.description).to.eql(\"E2E defect resolved and closed\");",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2E Step 4 - Filter closed issues",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_reporter}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues?state=closed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues"
+              ],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "closed"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 4: Status is 200 OK\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const list = pm.response.json();",
+                  "    const targetIid = Number(pm.variables.get(\"e2e_issue_iid\"));",
+                  "    const found = list.some(i => i.iid === targetIid);",
+                  "    pm.expect(found).to.be.true;",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2E Step 5 - Delete issue",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_owner}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues/{{e2e_issue_iid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues",
+                "{{e2e_issue_iid}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 5: Status is 204 No Content or 200 OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2E Step 6 - Verify deletion",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_reporter}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/issues/{{e2e_issue_iid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "issues",
+                "{{e2e_issue_iid}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"E2E Step 6: Status is 404 Not Found after deletion\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup - Delete remaining labels issue if present",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_owner}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/projects/{{project_id}}/issues/{{labels_issue_iid}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "{{project_id}}",
+            "issues",
+            "{{labels_issue_iid}}"
+          ]
+        },
+        "description": "Cleanup step: ensures auxiliary test issues created during testing are deleted from the project."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Cleanup response status is acceptable\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 204, 404]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

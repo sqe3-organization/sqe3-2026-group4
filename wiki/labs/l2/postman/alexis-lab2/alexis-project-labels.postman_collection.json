@@ -1,0 +1,935 @@
+{
+  "info": {
+    "name": "SQE3 Lab 2 - Group 4 - Alexis Frene - Project Labels",
+    "description": "Lab 2 individual Postman collection for the GitLab Project labels REST API v4. The collection contains no credentials.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "let runId = pm.collectionVariables.get('run_id');",
+          "if (!runId) {",
+          "  runId = String(Date.now());",
+          "  pm.collectionVariables.set('run_id', runId);",
+          "}",
+          "const values = {",
+          "  label_name: `sqe3-label-${runId}`,",
+          "  label_name_updated: `sqe3-label-updated-${runId}`,",
+          "  control_label_name: `sqe3-control-${runId}`,",
+          "  e2e_label_name: `sqe3-e2e-label-${runId}`,",
+          "  e2e_label_name_updated: `sqe3-e2e-updated-${runId}`",
+          "};",
+          "Object.entries(values).forEach(([key, value]) => pm.collectionVariables.set(key, value));",
+          "pm.collectionVariables.set('label_name_url', encodeURIComponent(values.label_name));",
+          "pm.collectionVariables.set('label_name_updated_url', encodeURIComponent(values.label_name_updated));",
+          "pm.collectionVariables.set('control_label_name_url', encodeURIComponent(values.control_label_name));",
+          "pm.collectionVariables.set('e2e_label_name_url', encodeURIComponent(values.e2e_label_name));",
+          "pm.collectionVariables.set('e2e_label_name_updated_url', encodeURIComponent(values.e2e_label_name_updated));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://gitlab.com/api/v4"
+    },
+    {
+      "key": "project_id",
+      "value": ""
+    },
+    {
+      "key": "token_label_manager",
+      "value": ""
+    },
+    {
+      "key": "token_label_reader",
+      "value": ""
+    },
+    {
+      "key": "run_id",
+      "value": ""
+    },
+    {
+      "key": "label_name",
+      "value": ""
+    },
+    {
+      "key": "label_name_url",
+      "value": ""
+    },
+    {
+      "key": "label_name_updated",
+      "value": ""
+    },
+    {
+      "key": "label_name_updated_url",
+      "value": ""
+    },
+    {
+      "key": "label_id",
+      "value": ""
+    },
+    {
+      "key": "archived_label_id",
+      "value": ""
+    },
+    {
+      "key": "e2e_label_id",
+      "value": ""
+    },
+    {
+      "key": "e2e_label_name",
+      "value": ""
+    },
+    {
+      "key": "e2e_label_name_url",
+      "value": ""
+    },
+    {
+      "key": "e2e_label_name_updated",
+      "value": ""
+    },
+    {
+      "key": "e2e_label_name_updated_url",
+      "value": ""
+    },
+    {
+      "key": "color",
+      "value": "#FFAA00"
+    },
+    {
+      "key": "updated_color",
+      "value": "#00AAFF"
+    },
+    {
+      "key": "description",
+      "value": "API label test"
+    },
+    {
+      "key": "updated_description",
+      "value": "Updated API label test"
+    }
+  ],
+  "item": [
+    {
+      "name": "TC_LABEL_POST_001 - Create a project label",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "name",
+              "value": "{{label_name}}",
+              "type": "text"
+            },
+            {
+              "key": "color",
+              "value": "{{color}}",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "{{description}}",
+              "type": "text"
+            },
+            {
+              "key": "priority",
+              "value": "0",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.expect(pm.response.code).to.eql(201));",
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.name).to.eql(pm.variables.get('label_name'));",
+              "  pm.expect(body.color).to.eql(pm.variables.get('color'));",
+              "  pm.collectionVariables.set('label_id', String(body.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_POST_002 - Reject creation without a name",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "color",
+              "value": "{{color}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation status is returned', () => pm.expect([400, 422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_POST_003 - Reject creation without a color",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "name",
+              "value": "{{label_name}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation status is returned', () => pm.expect([400, 422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_POST_004 - Reject an invalid token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "token-invalido-sqe3"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "name",
+              "value": "{{label_name}}",
+              "type": "text"
+            },
+            {
+              "key": "color",
+              "value": "{{color}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid token is rejected', () => pm.expect(pm.response.code).to.eql(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_POST_005 - Accept priority zero and archived",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "name",
+              "value": "{{control_label_name}}",
+              "type": "text"
+            },
+            {
+              "key": "color",
+              "value": "{{color}}",
+              "type": "text"
+            },
+            {
+              "key": "priority",
+              "value": "0",
+              "type": "text"
+            },
+            {
+              "key": "archived",
+              "value": "true",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.expect(pm.response.code).to.eql(201));",
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.priority).to.eql(0);",
+              "  pm.expect(body.archived).to.eql(true);",
+              "  pm.collectionVariables.set('archived_label_id', String(body.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_GET_001 - Search with one-item pagination",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels?search={{label_name}}&per_page=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.eql(200));",
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.be.an('array');",
+              "  pm.expect(body.length).to.be.at.most(1);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_GET_002 - Retrieve by encoded title",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_name_url}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.eql(200));",
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.name).to.eql(pm.variables.get('label_name'));",
+              "  pm.collectionVariables.set('label_id', String(body.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_GET_003 - Reject a nonexistent label",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/ausente-{{run_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.expect(pm.response.code).to.eql(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_GET_004 - Filter archived labels",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels?archived=true&search={{run_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.eql(200));",
+              "if (pm.response.code === 200) {",
+              "  pm.response.json().forEach(label => pm.expect(label.archived).to.eql(true));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_PUT_001 - Update color and description",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "color",
+              "value": "{{updated_color}}",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "{{updated_description}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.eql(200));",
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.color).to.eql(pm.variables.get('updated_color'));",
+              "  pm.expect(body.description).to.eql(pm.variables.get('updated_description'));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_PUT_002 - Rename a label",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "new_name",
+              "value": "{{label_name_updated}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.eql(200));",
+              "if (pm.response.code === 200) pm.expect(pm.response.json().name).to.eql(pm.variables.get('label_name_updated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_PUT_003 - Reject an empty update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation status is returned', () => pm.expect([400, 422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_PUT_004 - Reject negative priority",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "color",
+              "value": "{{updated_color}}",
+              "type": "text"
+            },
+            {
+              "key": "priority",
+              "value": "-1",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation status is returned', () => pm.expect([400, 422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_PUT_005 - Protect mutation with reader token",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_reader}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "color",
+              "value": "{{updated_color}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reader token cannot mutate', () => pm.expect([401, 403]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_DELETE_001 - Delete an existing label",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 204', () => pm.expect(pm.response.code).to.eql(204));",
+              "if (pm.response.code === 204) pm.collectionVariables.unset('label_id');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_DELETE_002 - Reject deletion of a nonexistent label",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/ausente-{{run_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.expect(pm.response.code).to.eql(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC_LABEL_E2E_001 - Complete label lifecycle",
+      "item": [
+        {
+          "name": "1. Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "{{e2e_label_name}}",
+                  "type": "text"
+                },
+                {
+                  "key": "color",
+                  "value": "{{color}}",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "{{description}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{base_url}}/projects/{{project_id}}/labels"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E create returns 201', () => pm.expect(pm.response.code).to.eql(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set('e2e_label_id', String(pm.response.json().id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Retrieve",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              }
+            ],
+            "url": "{{base_url}}/projects/{{project_id}}/labels/{{e2e_label_name_url}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E retrieve returns 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "if (pm.response.code === 200) pm.expect(pm.response.json().name).to.eql(pm.variables.get('e2e_label_name'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "new_name",
+                  "value": "{{e2e_label_name_updated}}",
+                  "type": "text"
+                },
+                {
+                  "key": "color",
+                  "value": "{{updated_color}}",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "{{updated_description}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{base_url}}/projects/{{project_id}}/labels/{{e2e_label_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E update returns 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "if (pm.response.code === 200) pm.expect(pm.response.json().name).to.eql(pm.variables.get('e2e_label_name_updated'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Filter updated label",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              }
+            ],
+            "url": "{{base_url}}/projects/{{project_id}}/labels?search={{e2e_label_name_updated}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E filter returns 200', () => pm.expect(pm.response.code).to.eql(200));",
+                  "if (pm.response.code === 200) pm.expect(pm.response.json().some(label => label.name === pm.variables.get('e2e_label_name_updated'))).to.eql(true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              }
+            ],
+            "url": "{{base_url}}/projects/{{project_id}}/labels/{{e2e_label_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E delete returns 204', () => pm.expect(pm.response.code).to.eql(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Confirm deletion",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "{{token_label_manager}}"
+              }
+            ],
+            "url": "{{base_url}}/projects/{{project_id}}/labels/{{e2e_label_name_updated_url}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('E2E deleted label returns 404', () => pm.expect(pm.response.code).to.eql(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup - Delete archived label if present",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "PRIVATE-TOKEN",
+            "value": "{{token_label_manager}}"
+          }
+        ],
+        "url": "{{base_url}}/projects/{{project_id}}/labels/{{archived_label_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Cleanup returns 204 or resource is already absent', () => pm.expect([204, 404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
