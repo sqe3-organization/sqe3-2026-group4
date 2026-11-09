@@ -1,0 +1,1065 @@
+{
+  "info": {
+    "_postman_id": "5d27c195-492e-4be3-a459-dc4f253a7e3c",
+    "name": "SQE3 - Lab #2 - Maddock García",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "PRIVATE-TOKEN",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{token_editor}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "demo_base_url",
+      "value": "https://api.restful-api.dev"
+    },
+    {
+      "key": "sample_object_id",
+      "value": ""
+    },
+    {
+      "key": "base_url",
+      "value": "https://gitlab.com/api/v4"
+    },
+    {
+      "key": "project_id",
+      "value": "86160682"
+    },
+    {
+      "key": "ref",
+      "value": "bee3de554beadc2569fc232da1b807d2f0d47d72"
+    },
+    {
+      "key": "readme_blob_sha",
+      "value": "38475efa6b4cd07666eacc81bafcb9d9c5b4664a"
+    },
+    {
+      "key": "private_project_id",
+      "value": "86430922"
+    },
+    {
+      "key": "private_ref",
+      "value": "master"
+    },
+    {
+      "key": "missing_ref",
+      "value": "sqe3-missing-ref-nonexistent"
+    },
+    {
+      "key": "missing_path",
+      "value": "sqe3-absent-path-nonexistent"
+    },
+    {
+      "key": "missing_blob_sha",
+      "value": "0000000000000000000000000000000000000000"
+    },
+    {
+      "key": "token_editor",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "id": "4b50229e-3f11-4550-ad80-de83b330921f",
+      "name": "00 - Sample CRUD (Objects)",
+      "item": [
+        {
+          "id": "1a30fb92-91f9-4c5d-a772-730b91118e4f",
+          "name": "TC_DEMO_POST_001 - Create an object",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const obj = pm.response.json();",
+                  "pm.test('Object created with ID', () => {",
+                  "    pm.expect(obj.id).to.be.a('string');",
+                  "    pm.collectionVariables.set('sample_object_id', obj.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Apple MacBook Pro 16\",\"data\":{\"year\":2026,\"price\":1849.99,\"CPU_model\":\"Intel Core i9\"}}"
+            },
+            "url": {
+              "raw": "{{demo_base_url}}/objects",
+              "host": [
+                "{{demo_base_url}}"
+              ],
+              "path": [
+                "objects"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "a3add117-bd40-47ba-a7b4-45e471408b19",
+          "name": "TC_DEMO_GET_001 - Retrieve an object",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Object ID matches created ID', () => {",
+                  "    pm.expect(pm.response.json().id).to.equal(pm.collectionVariables.get('sample_object_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{demo_base_url}}/objects/{{sample_object_id}}",
+              "host": [
+                "{{demo_base_url}}"
+              ],
+              "path": [
+                "objects",
+                "{{sample_object_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "481509f3-7dee-4c24-9d72-66554a5012b7",
+          "name": "TC_DEMO_PUT_001 - Update an object",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Object updated successfully', () => {",
+                  "    pm.expect(pm.response.json().name).to.include('updated');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Apple MacBook Pro 16 updated\",\"data\":{\"year\":2026,\"price\":1999.99,\"CPU_model\":\"Intel Core i9\"}}"
+            },
+            "url": {
+              "raw": "{{demo_base_url}}/objects/{{sample_object_id}}",
+              "host": [
+                "{{demo_base_url}}"
+              ],
+              "path": [
+                "objects",
+                "{{sample_object_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "57ccb223-0425-4b6d-b43d-725eb7fbcc81",
+          "name": "TC_DEMO_DELETE_001 - Delete an object",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Object deletion confirmed', () => {",
+                  "    pm.expect(pm.response.json().message).to.include('deleted');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{demo_base_url}}/objects/{{sample_object_id}}",
+              "host": [
+                "{{demo_base_url}}"
+              ],
+              "path": [
+                "objects",
+                "{{sample_object_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "3853640c-522e-469a-89d4-00a5656bb015",
+      "name": "01 - Authorization",
+      "item": [
+        {
+          "id": "3aae3855-2e23-45bb-b059-9c08748942d5",
+          "name": "AUTH - Verify editor identity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is JSON', () => pm.response.to.be.json);",
+                  "pm.test('Returns authenticated user', () => {",
+                  "    const user = pm.response.json();",
+                  "    pm.expect(user.id).to.be.a('number');",
+                  "    pm.expect(user.username).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "d4e7a316-46a9-44bf-ab0c-a07f149538f9",
+      "name": "02 - Repositories LLTCs",
+      "item": [
+        {
+          "id": "1d5079a5-3030-4d47-b196-3accd98f88dc",
+          "name": "TC_REPO_GET_001 - List root entries at a pinned revision",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is JSON', () => pm.response.to.be.json);",
+                  "pm.test('Root entries contain README blob and docs tree', () => {",
+                  "    const tree = pm.response.json();",
+                  "    pm.expect(tree).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(tree.some(e => e.name === 'README.md' && e.type === 'blob')).to.be.true;",
+                  "    pm.expect(tree.some(e => e.name === 'docs' && e.type === 'tree')).to.be.true;",
+                  "    pm.expect(tree.some(e => e.path.includes('/'))).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&recursive=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "recursive",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "a6d40746-ced0-420e-b283-2fbc1abadcd2",
+          "name": "TC_REPO_GET_002 - List all nested entries recursively",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Recursive tree contains nested files and README SHA', () => {",
+                  "    const tree = pm.response.json();",
+                  "    pm.expect(tree.some(e => e.path === 'docs/activity-1.md')).to.be.true;",
+                  "    pm.expect(tree.some(e => e.path.startsWith('docs/images/'))).to.be.true;",
+                  "    const readme = tree.find(e => e.path === 'README.md');",
+                  "    pm.expect(readme.id).to.equal(pm.variables.get('readme_blob_sha'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&recursive=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "recursive",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "af073f62-75d1-46d7-bf31-5808c8dbc869",
+          "name": "TC_REPO_GET_003 - Restrict listing to a directory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Only docs directory items returned', () => {",
+                  "    const tree = pm.response.json();",
+                  "    pm.expect(tree).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(tree.every(e => e.path.startsWith('docs/'))).to.be.true;",
+                  "    pm.expect(tree.some(e => e.path.startsWith('docs/images/'))).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&path=docs&recursive=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "path",
+                  "value": "docs"
+                },
+                {
+                  "key": "recursive",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "f9888de3-f0d9-4c04-afe4-6e926fc5fc01",
+          "name": "TC_REPO_GET_004 - Resolve an encoded nested path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Only direct children of docs/images returned', () => {",
+                  "    const tree = pm.response.json();",
+                  "    pm.expect(tree).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(tree.every(e => /^docs\\/images\\/[^\\/]+$/.test(e.path))).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&path=docs%2Fimages&recursive=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "path",
+                  "value": "docs%2Fimages"
+                },
+                {
+                  "key": "recursive",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "6ed1ddd9-e0aa-4ab5-b45c-9935d2fa78c9",
+          "name": "TC_REPO_GET_005 - Traverse one-entry tree pages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Page 1 returns exactly 1 item', () => {",
+                  "    const p1 = pm.response.json();",
+                  "    pm.expect(p1).to.have.lengthOf(1);",
+                  "    pm.expect(pm.response.headers.get('X-Per-Page')).to.equal('1');",
+                  "    pm.expect(pm.response.headers.get('X-Total-Pages')).to.equal('4');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&per_page=1&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "1"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "8dfd3fa5-e0e2-4c10-b729-5bbf577a7b9a",
+          "name": "TC_REPO_GET_006 - Reject a nonexistent revision",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Error message returned', () => {",
+                  "    pm.expect(pm.response.json().message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{missing_ref}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{missing_ref}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "d347a8f8-6c17-41dd-8f35-665b45f1259c",
+          "name": "TC_REPO_GET_007 - Reject a nonexistent tree path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Tree Not Found error returned', () => {",
+                  "    pm.expect(pm.response.json().message).to.match(/404.*not found/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&path={{missing_path}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "path",
+                  "value": "{{missing_path}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "64fb98c1-2959-45bd-9fda-25087180f672",
+          "name": "TC_REPO_GET_008 - Retrieve blob metadata and encoded content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Blob metadata and content valid', () => {",
+                  "    const blob = pm.response.json();",
+                  "    pm.expect(blob.sha).to.equal(pm.variables.get('readme_blob_sha'));",
+                  "    pm.expect(blob.encoding).to.equal('base64');",
+                  "    pm.expect(blob.size).to.equal(194);",
+                  "    pm.expect(Buffer.from(blob.content, 'base64').toString('utf8')).to.include('# Laboratorio Semana 1');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/blobs/{{readme_blob_sha}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "blobs",
+                "{{readme_blob_sha}}"
+              ]
+            }
+          }
+        },
+        {
+          "id": "0fb2b9a0-d785-4dc1-aeb0-a99ea5cb8e4c",
+          "name": "TC_REPO_GET_009 - Retrieve raw UTF-8 blob bytes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Raw content contains README markdown', () => {",
+                  "    pm.expect(pm.response.text()).to.include('# Laboratorio Semana 1');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/blobs/{{readme_blob_sha}}/raw",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "blobs",
+                "{{readme_blob_sha}}",
+                "raw"
+              ]
+            }
+          }
+        },
+        {
+          "id": "2aa540ad-6bc3-40d0-9b41-a8deabed4a86",
+          "name": "TC_REPO_GET_010 - Read a public tree without credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 without authentication', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns public repository entries', () => {",
+                  "    const tree = pm.response.json();",
+                  "    pm.expect(tree).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(tree.some(e => e.name === 'README.md')).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&recursive=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "recursive",
+                  "value": "false"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "f12f6f02-17f4-4a74-8a88-3f6bc37d2c70",
+          "name": "TC_REPO_GET_011 - Reject an unavailable blob ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Error message returned', () => {",
+                  "    pm.expect(pm.response.json().message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/blobs/{{missing_blob_sha}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "blobs",
+                "{{missing_blob_sha}}"
+              ]
+            }
+          }
+        },
+        {
+          "id": "d86e6e50-6cb0-4655-9876-0c49ed4be955",
+          "name": "TC_REPO_GET_012 - Reject raw retrieval of an unavailable blob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/blobs/{{missing_blob_sha}}/raw",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "blobs",
+                "{{missing_blob_sha}}",
+                "raw"
+              ]
+            }
+          }
+        },
+        {
+          "id": "1bc9f6eb-f2a3-497e-8ec0-2ddd5fc59197",
+          "name": "TC_REPO_GET_013 - Protect private repository reads without credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Unauthenticated private access rejected (404/401)', () => {",
+                  "    pm.expect([401, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{private_project_id}}/repository/tree?ref={{private_ref}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{private_project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{private_ref}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "13fa52ec-ab9e-4a32-850e-009791f4d455",
+          "name": "TC_REPO_GET_014 - Reject an invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Unauthorized message returned', () => {",
+                  "    pm.expect(pm.response.json().message).to.match(/401.*unauthorized/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "PRIVATE-TOKEN",
+                "value": "invalid-token-sqe3"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "id": "5a112d4a-7a19-4f93-89b7-070efabaa86e",
+          "name": "TC_REPO_E2E_001 - Browse and read the same immutable file",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Step 1: Root tree returns 200', () => pm.response.to.have.status(200));",
+                  "const baseUrl = pm.variables.get('base_url');",
+                  "const projectId = pm.variables.get('project_id');",
+                  "const ref = pm.variables.get('ref');",
+                  "const headers = { Accept: 'application/json' };",
+                  "const token = pm.variables.get('token_editor');",
+                  "if (token) headers['PRIVATE-TOKEN'] = token;",
+                  "",
+                  "pm.sendRequest({ url: `${baseUrl}/projects/${projectId}/repository/tree?ref=${encodeURIComponent(ref)}&recursive=true`, header: headers }, (err, res) => {",
+                  "    pm.test('Step 2: Recursive tree returns 200', () => pm.expect(res.code).to.equal(200));",
+                  "    const tree = res.json();",
+                  "    const readme = tree.find(e => e.path === 'README.md');",
+                  "    pm.test('Step 2: Discovers README blob SHA', () => pm.expect(readme).to.not.be.undefined);",
+                  "    const sha = readme.id;",
+                  "",
+                  "    pm.sendRequest({ url: `${baseUrl}/projects/${projectId}/repository/blobs/${sha}`, header: headers }, (err, jsonRes) => {",
+                  "        pm.test('Step 3: Blob JSON returns 200', () => pm.expect(jsonRes.code).to.equal(200));",
+                  "        const blob = jsonRes.json();",
+                  "        pm.test('Step 3: SHA and size match', () => {",
+                  "            pm.expect(blob.sha).to.equal(sha);",
+                  "            pm.expect(blob.size).to.equal(194);",
+                  "        });",
+                  "",
+                  "        pm.sendRequest({ url: `${baseUrl}/projects/${projectId}/repository/blobs/${sha}/raw`, header: headers }, (err, rawRes) => {",
+                  "            pm.test('Step 4: Raw blob matches decoded JSON', () => {",
+                  "                pm.expect(rawRes.code).to.equal(200);",
+                  "                pm.expect(rawRes.text()).to.equal(Buffer.from(blob.content, 'base64').toString('utf8'));",
+                  "            });",
+                  "        });",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/repository/tree?ref={{ref}}&recursive=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "repository",
+                "tree"
+              ],
+              "query": [
+                {
+                  "key": "ref",
+                  "value": "{{ref}}"
+                },
+                {
+                  "key": "recursive",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
