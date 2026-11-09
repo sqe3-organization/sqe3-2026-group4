@@ -1,48 +1,48 @@
 # Alexis Frene - Lab 2 Postman Project Labels
 
-Esta carpeta contiene la implementación individual de Alexis para la API de
-labels de proyectos de GitLab REST API v4.
+This folder contains Alexis's individual implementation for the GitLab REST API
+v4 project labels feature.
 
-## Archivos
+## Files
 
-- `alexis-project-labels.postman_collection.json`: colección con los casos
-  `TC_LABEL_*` y el flujo E2E de creación, consulta, actualización, filtro y
-  eliminación.
-- `alexis-project-labels.postman_environment.example.json`: ambiente de
-  ejemplo sin `project_id` ni tokens.
+- `alexis-project-labels.postman_collection.json`: collection with the
+  `TC_LABEL_*` cases and the E2E flow for creating, retrieving, updating,
+  filtering and deleting labels.
+- `alexis-project-labels.postman_environment.example.json`: example environment
+  without `project_id` or tokens.
 
-## Configuración
+## Configuration
 
-1. Importar la colección y el ambiente de ejemplo en Postman.
-2. Duplicar el ambiente para uso local y seleccionar la copia.
-3. Completar `project_id` con el ID numérico de un proyecto de pruebas.
-4. Completar `token_label_manager` con un token que pueda administrar labels.
-5. Completar `token_label_reader` con un token de solo lectura para el caso de
-   autorización, si se dispone de uno.
-6. No guardar tokens en el repositorio ni en capturas.
+1. Import the collection and the example environment into Postman.
+2. Duplicate the environment for local use and select the copy.
+3. Set `project_id` to the numeric ID of a test project.
+4. Set `token_label_manager` to a token that can manage project labels.
+5. Set `token_label_reader` to a read-only token for the authorization case, if
+   one is available.
+6. Do not store tokens in the repository or in screenshots.
 
-La colección genera nombres únicos usando `run_id` y codifica los nombres antes
-de enviarlos como parámetros de ruta. Los datos creados se pueden limpiar con
-la solicitud `Cleanup - Delete archived label` y con los casos de eliminación.
+The collection generates unique names using `run_id` and encodes names before
+sending them as path parameters. Created data can be cleaned up with the
+`Cleanup - Delete archived label` request and the deletion cases.
 
-## Orden recomendado
+## Recommended order
 
-Para probar el flujo completo, ejecutar en este orden:
+To test the complete flow, run the requests in this order:
 
-1. `TC_LABEL_POST_001` para crear el label principal.
-2. `TC_LABEL_POST_002` a `TC_LABEL_GET_004` para validar creación, consulta,
-   búsqueda, paginación y filtros.
-3. `TC_LABEL_PUT_001` a `TC_LABEL_PUT_005` para validar actualización y
-   autorización.
-4. `TC_LABEL_DELETE_001` y `TC_LABEL_DELETE_002`.
-5. La carpeta `TC_LABEL_E2E_001`.
-6. La solicitud de limpieza.
+1. `TC_LABEL_POST_001` to create the main label.
+2. `TC_LABEL_POST_002` through `TC_LABEL_GET_004` to validate creation,
+   retrieval, search, pagination and filters.
+3. `TC_LABEL_PUT_001` through `TC_LABEL_PUT_005` to validate updates and
+   authorization.
+4. `TC_LABEL_DELETE_001` and `TC_LABEL_DELETE_002`.
+5. The `TC_LABEL_E2E_001` folder.
+6. The cleanup request.
 
-Cada solicitud también puede ejecutarse por separado si se cumplen sus
-precondiciones y se dispone de los valores de las variables correspondientes.
+Each request can also be run separately if its preconditions are met and the
+required variable values are available.
 
-## Estado de ejecución
+## Execution status
 
-La colección está preparada para ejecución, pero los resultados reales dependen
-del proyecto GitLab y de los tokens del equipo. No se incluyen credenciales ni
-se inventan capturas o resultados.
+The collection is ready to run, but actual results depend on the GitLab project
+and the team's tokens. No credentials are included, and no screenshots or
+results are fabricated.
