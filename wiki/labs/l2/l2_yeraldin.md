@@ -192,7 +192,22 @@ console.log('Collection:', c.info.name, '- Items:', c.item.length);
 
 ## Activity #5: Review and feedback
 
-### 5.1 Peer review of Alexis Frene's Project Labels implementation
+### 5.1 External team coordination attempt and context
+
+To complete the peer review required in Activity #5, coordination with external teams was actively pursued:
+
+- **Group 1:** Contact was initiated, but they reported that they had already established reciprocal peer reviews exclusively with Group 2, leaving no collections available to share with our group.
+- **Group 3:** Contact was established with team member Gianluca Barreyro. However, he confirmed that his group had not finalized their collections and was not yet ready to share them.
+
+![Peer review pairing limitation](assets/yeraldin/chat_peer_review_pairing.png)  
+*Figure 5.1: Communication confirming that other groups had already established mutual evaluation pairings.*
+
+![Group 3 communication](assets/yeraldin/chat_peer_review_group3.png)  
+*Figure 5.2: Communication with Group 3 confirming that their deliverables were not completed or ready to share.*
+
+To ensure full compliance with the 20% grading rubric without leaving the activity empty, and to demonstrate practical review of complexity, request volume, variable management, and test types, I conducted the evaluation on the Project Labels implementation delivered by teammate Alexis Frene (`postman/alexis-lab2/`).
+
+### 5.2 Peer review of Alexis Frene's Project Labels implementation
 
 I evaluated Alexis Frene's implementation for the Project Labels feature (`wiki/labs/l2/postman/alexis-lab2/`):
 
@@ -203,7 +218,7 @@ I evaluated Alexis Frene's implementation for the Project Labels feature (`wiki/
 | **Assertions** | Validates status codes (200, 201, 400, 401, 404) and core attributes (`name`, `color`). | **Good** |
 | **Ease of use** | Clean environment template without exposed credentials; clear README instructions. | **Very good** |
 
-### 5.2 Constructive feedback for the team
+### 5.3 Constructive feedback for the team
 
 1. **Header assertions:** Recommend adding explicit `pm.response.headers.get("Content-Type")` and pagination header assertions (`x-per-page`) to further solidify REST contract verification across all collections.
 2. **Latency thresholds:** Include response time checks (`pm.expect(pm.response.responseTime).to.be.below(...)`) on GET requests to confirm API performance stays within acceptable limits.
