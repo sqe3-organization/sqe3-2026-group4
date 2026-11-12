@@ -9,13 +9,14 @@
     "node": ">=26.13.1 <27"
   },
   "scripts": {
-    "test": "bun test",
-    "test:coverage": "bun test ./tests/unit --coverage --coverage-reporter=text --coverage-reporter=lcov",
+    "test": "vitest run",
+    "test:coverage": "vitest run tests/unit --coverage",
     "test:performance:multimedia": "bun run scripts/run-multimedia-performance.ts",
     "test:reports": "bun run scripts/generate-test-reports.ts",
-    "test:unit": "bun test ./tests/unit",
-    "test:integration": "bun test ./tests/integration",
-    "test:watch": "bun test --watch",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "bun fmt",
@@ -31,7 +32,10 @@
   },
   "devDependencies": {
     "@types/bun": "1.4.4",
+    "@vitest/coverage-v8": "5.1.0",
+    "@vitest/ui": "5.1.0",
     "oxlint": "1.93.0",
-    "pino-pretty": "13.2.0"
+    "pino-pretty": "13.2.0",
+    "vitest": "5.1.0"
   }
 }

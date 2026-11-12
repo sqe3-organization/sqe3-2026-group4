@@ -8,3 +8,6 @@ Use Bun 1.4.4 or newer:
 bun install
 bun run src/index.ts
 ```
+
+Tests use Vitest on Node.js (version in `.nvmrc`): `bun run test`.
+For coverage or the test UI, use `bun run test:coverage` or `bun run test:ui`.
