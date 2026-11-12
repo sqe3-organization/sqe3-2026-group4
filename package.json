@@ -1,0 +1,37 @@
+{
+  "name": "gitlab-api-framework",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "engines": {
+    "bun": ">=1.4.4",
+    "node": ">=26.13.1 <27"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:coverage": "bun test ./tests/unit --coverage --coverage-reporter=text --coverage-reporter=lcov",
+    "test:performance:multimedia": "bun run scripts/run-multimedia-performance.ts",
+    "test:reports": "bun run scripts/generate-test-reports.ts",
+    "test:unit": "bun test ./tests/unit",
+    "test:integration": "bun test ./tests/integration",
+    "test:watch": "bun test --watch",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "bun fmt",
+    "format:check": "bun fmt --check",
+    "logs:pretty": "pino-pretty --colorize --translateTime SYS:standard",
+    "typecheck": "bun check --no-script",
+    "check": "bun run typecheck && bun run lint && bun run test"
+  },
+  "dependencies": {
+    "got": "16.2.0",
+    "pino": "10.4.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "oxlint": "1.93.0",
+    "pino-pretty": "13.2.0"
+  }
+}
