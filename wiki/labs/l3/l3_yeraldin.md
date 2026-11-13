@@ -86,6 +86,8 @@ To transition from GUI-based Postman collections to code, I evaluated the leadin
 - **Prompt:**  
   > *"Analyze the leading Node.js/TypeScript HTTP request libraries (Got, Axios, native Fetch, Superagent) for an automated REST API test framework targeting GitLab v4. Compare performance, TypeScript ergonomics, built-in retry mechanisms, and interceptor/hook capabilities. Provide a comparative table and a justified recommendation."*
 
+![Generative AI Prompt and Evaluation](assets/yeraldin/screen_l3_genai_prompt.png)
+
 ---
 
 <a id="activity-3"></a>
