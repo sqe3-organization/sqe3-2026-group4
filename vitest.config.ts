@@ -10,5 +10,6 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    setupFiles: ["./tests/setup/load-env.ts"],
   },
 });
