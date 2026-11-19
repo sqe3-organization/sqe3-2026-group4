@@ -9,6 +9,8 @@ bun install
 bun run src/index.ts
 ```
 
+Run `bun run lint` before opening a pull request. It checks the code with Oxlint.
+
 Tests use Vitest on Node.js (version in `.nvmrc`): `bun run test`.
 For coverage or the test UI, use `bun run test:coverage` or `bun run test:ui`.
 

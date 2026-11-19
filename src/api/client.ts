@@ -1,36 +1,15 @@
 import got, { type Got } from 'got';
 
-const DEFAULT_BASE_URL = 'https://gitlab.com/api/v4';
-const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_USER_AGENT = 'SQE3-GitLab-Test-Framework/1.0';
+import {
+  DEFAULT_BASE_URL,
+  DEFAULT_TIMEOUT_MS,
+  DEFAULT_USER_AGENT,
+  resolveGitLabRetryLimit,
+  resolveGitLabToken,
+  type GitLabClientConfig,
+} from '../config/gitlab.ts';
 
-export interface GitLabClientConfig {
-  baseUrl?: string;
-  token?: string;
-  timeoutMs?: number;
-  userAgent?: string;
-}
-
-function resolveToken(token?: string): string {
-  return (
-    token ??
-    process.env.GITLAB_TOKEN_EDITOR ??
-    process.env.GITLAB_TOKEN ??
-    process.env.GLAB_TOKEN ??
-    process.env.GITLAB_TOKEN_REPORTER ??
-    ''
-  );
-}
-
-function resolveRetryLimit(): number {
-  const limit = Number(process.env.GITLAB_RETRY_LIMIT ?? 0);
-
-  if (!Number.isSafeInteger(limit) || limit < 0) {
-    throw new Error('GITLAB_RETRY_LIMIT must be a non-negative integer.');
-  }
-
-  return limit;
-}
+export type { GitLabClientConfig } from '../config/gitlab.ts';
 
 function createHeaders(
   token: string,
@@ -57,12 +36,10 @@ export function createGitLabClient(config: GitLabClientConfig = {}): Got {
     timeout: {
       request: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     },
-    retry: { limit: resolveRetryLimit() },
+    retry: { limit: resolveGitLabRetryLimit() },
     headers: createHeaders(
-      resolveToken(config.token),
+      resolveGitLabToken(config.token),
       config.userAgent ?? DEFAULT_USER_AGENT,
     ),
   });
 }
-
-export const defaultClient = createGitLabClient();

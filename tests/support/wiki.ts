@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import type { Got, Response } from 'got';
+import type { Got, OptionsInit, Response } from 'got';
 import { expect, test as base } from 'vitest';
 import { createGitLabClient } from '@/api/client.ts';
+import { requestManager } from '@/api/request-manager.ts';
 import {
   WikiErrorSchema,
   WikiPageContentListSchema,
@@ -40,12 +41,19 @@ export function expectError(response: Response<unknown>, status: number): void {
   expect(response.body).not.toHaveProperty('slug');
 }
 
-export class WikiSession {
-  readonly editor: Got;
-  readonly invalid: Got;
-  readonly root: string;
-  readonly project: string;
-  readonly editorToken: string;
+type WikiAccess = 'editor' | 'invalid' | 'reader';
+type WikiMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
+type WikiRequestOptions = Pick<OptionsInit, 'json' | 'searchParams'> & {
+  access?: WikiAccess;
+};
+type WikiTextOptions = WikiRequestOptions & { responseType: 'text' };
+type WikiJsonOptions = WikiRequestOptions & { responseType?: 'json' };
+
+class WikiSession {
+  private readonly editor: Got;
+  private readonly root: string;
+  private readonly project: string;
+  private readonly editorToken: string;
   readonly title: string;
   readonly missingSlug: string;
   readonly initialContent = 'Initial guide';
@@ -64,7 +72,6 @@ export class WikiSession {
       'GITLAB_TOKEN_EDITOR',
     );
     this.editor = this.client(this.editorToken);
-    this.invalid = this.client('invalid-token-sqe3');
     this.root = `projects/${this.project}/wikis`;
     const runId = randomUUID();
     this.title = `sqe3-code-${caseId.toLowerCase()}-${runId}`;
@@ -78,7 +85,7 @@ export class WikiSession {
     }).extend({ followRedirect: false });
   }
 
-  reader(): Got {
+  private requireReaderToken(): string {
     const token = required(
       process.env.GITLAB_TOKEN_READER,
       'GITLAB_TOKEN_READER',
@@ -89,7 +96,55 @@ export class WikiSession {
         'GITLAB_TOKEN_READER must be a separate read_api-only token.',
       );
 
-    return this.client(token);
+    return token;
+  }
+
+  requireReader(): void {
+    this.requireReaderToken();
+  }
+
+  request(
+    method: WikiMethod,
+    endpoint: string,
+    options: WikiTextOptions,
+  ): Promise<Response<string>>;
+  request(
+    method: WikiMethod,
+    endpoint: string,
+    options?: WikiJsonOptions,
+  ): Promise<Response<unknown>>;
+  request(
+    method: WikiMethod,
+    endpoint: string,
+    options: WikiJsonOptions | WikiTextOptions = {},
+  ): Promise<Response<unknown>> {
+    const {
+      access = 'editor',
+      responseType = 'json',
+      ...requestOptions
+    } = options;
+    const client =
+      access === 'editor'
+        ? this.editor
+        : this.client(
+            access === 'reader'
+              ? this.requireReaderToken()
+              : 'invalid-token-sqe3',
+          );
+
+    if (responseType === 'text') {
+      return requestManager.request(method, endpoint, {
+        ...requestOptions,
+        client,
+        responseType,
+      });
+    }
+
+    return requestManager.request(method, endpoint, {
+      ...requestOptions,
+      client,
+      responseType,
+    });
   }
 
   emptyRoot(): string {
@@ -134,7 +189,7 @@ export class WikiSession {
       content: this.initialContent,
       format: 'markdown',
     },
-    client = this.editor,
+    access: WikiAccess = 'editor',
   ): Promise<Response<unknown>> {
     const submittedTitle =
       typeof body.title === 'string' ? body.title : undefined;
@@ -142,7 +197,10 @@ export class WikiSession {
     if (submittedTitle)
       await this.expectAbsent(submittedTitle.replace(/ /g, '-'));
 
-    const response = await client.post(this.root, { json: body });
+    const response = await this.request('POST', this.root, {
+      access,
+      json: body,
+    });
 
     if (response.statusCode === 201) {
       const candidate = response.body as { slug?: unknown };
@@ -182,7 +240,7 @@ export class WikiSession {
     content = this.initialContent,
   ): Promise<void> {
     this.expectPage(
-      await this.editor.get(this.pageUrl(page.slug)),
+      await this.request('GET', this.pageUrl(page.slug)),
       page,
       content,
     );
@@ -192,7 +250,7 @@ export class WikiSession {
     slug: string,
     json: Record<string, unknown>,
   ): Promise<Response<unknown>> {
-    const response = await this.editor.put(this.pageUrl(slug), { json });
+    const response = await this.request('PUT', this.pageUrl(slug), { json });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       const candidate = response.body as { slug?: unknown };
@@ -203,7 +261,7 @@ export class WikiSession {
   }
 
   async expectAbsent(slug: string): Promise<void> {
-    expectError(await this.editor.get(this.pageUrl(slug)), 404);
+    expectError(await this.request('GET', this.pageUrl(slug)), 404);
   }
 
   async list(withContent: true): Promise<WikiPage[]>;
@@ -216,7 +274,7 @@ export class WikiSession {
       if (visited.has(next) || visited.size >= 1000)
         throw new Error('Wiki pagination did not terminate.');
       visited.add(next);
-      const response = await this.editor.get(this.root, {
+      const response = await this.request('GET', this.root, {
         searchParams: { per_page: 100, page: next, with_content: withContent },
       });
       expectJson(response, 200);
@@ -238,7 +296,7 @@ export class WikiSession {
   }
 
   async deletePage(page: WikiPage): Promise<void> {
-    const response = await this.editor.delete(this.pageUrl(page.slug), {
+    const response = await this.request('DELETE', this.pageUrl(page.slug), {
       responseType: 'text',
     });
     expect(response.statusCode).toBe(204);
@@ -251,7 +309,7 @@ export class WikiSession {
     const failures: Error[] = [];
     for (const slug of this.ownedSlugs) {
       try {
-        const response = await this.editor.delete(this.pageUrl(slug), {
+        const response = await this.request('DELETE', this.pageUrl(slug), {
           responseType: 'text',
         });
 
