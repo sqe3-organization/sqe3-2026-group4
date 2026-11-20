@@ -1,0 +1,6 @@
+case_id,title,description,labels,confidential,expected_status,validation_rule
+CSV_TC_001,"Minimal title A","Testing 1-char boundary","smoke",false,201,"status_equals_201"
+CSV_TC_002,"Special chars: & < > "" ' / \","Escaping verification","security,encoding",false,201,"sanitized_or_escaped"
+CSV_TC_003,"Confidential high priority bug","Triage queue inspection","bug,p0,security",true,201,"confidential_flag_true"
+CSV_TC_004,"State closed on creation attempt","Testing initial state constraint","test",false,201,"initial_state_opened"
+CSV_TC_005,"","Empty title rejection test","negative",false,400,"error_title_empty"
