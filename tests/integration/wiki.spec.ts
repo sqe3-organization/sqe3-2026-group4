@@ -46,7 +46,7 @@ describe(
       }) => {
         const response = await wiki.create(
           { title: wiki.title, content: wiki.initialContent },
-          wiki.invalid,
+          'invalid',
         );
         expectError(response, 401);
         expect(
@@ -72,7 +72,7 @@ describe(
         wiki,
       }) => {
         const page = await wiki.createPage();
-        const response = await wiki.editor.put(wiki.pageUrl(page.slug), {
+        const response = await wiki.request('PUT', wiki.pageUrl(page.slug), {
           json: { content: wiki.updatedContent },
         });
         wiki.expectPage(response, page, wiki.updatedContent);
@@ -84,7 +84,9 @@ describe(
       }) => {
         const page = await wiki.createPage();
         wiki.expectPage(
-          await wiki.editor.put(wiki.pageUrl(page.slug), { json: {} }),
+          await wiki.request('PUT', wiki.pageUrl(page.slug), {
+            json: {},
+          }),
           page,
         );
         await wiki.expectSaved(page);
@@ -105,7 +107,8 @@ describe(
         wiki,
       }) => {
         const page = await wiki.createPage();
-        const response = await wiki.invalid.put(wiki.pageUrl(page.slug), {
+        const response = await wiki.request('PUT', wiki.pageUrl(page.slug), {
+          access: 'invalid',
           json: { content: wiki.updatedContent },
         });
         expectError(response, 401);
@@ -118,7 +121,10 @@ describe(
         wiki,
       }) => {
         const page = await wiki.createPage();
-        wiki.expectPage(await wiki.editor.get(wiki.pageUrl(page.slug)), page);
+        wiki.expectPage(
+          await wiki.request('GET', wiki.pageUrl(page.slug)),
+          page,
+        );
         await wiki.expectSaved(page);
       });
 
@@ -136,7 +142,10 @@ describe(
         wiki,
       }) => {
         await wiki.expectAbsent(wiki.missingSlug);
-        expectError(await wiki.editor.get(wiki.pageUrl(wiki.missingSlug)), 404);
+        expectError(
+          await wiki.request('GET', wiki.pageUrl(wiki.missingSlug)),
+          404,
+        );
       });
 
       test('TC_WIKI_GET_004: Retrieve a guide at a nested path', async ({
@@ -161,10 +170,10 @@ describe(
         const options = {
           searchParams: { with_content: true, per_page: 100, page: 1 },
         };
-        const before = await wiki.editor.get(root, options);
+        const before = await wiki.request('GET', root, options);
         expectJson(before, 200);
         expect(WikiPageContentListSchema.parse(before.body)).toEqual([]);
-        const response = await wiki.editor.get(root, options);
+        const response = await wiki.request('GET', root, options);
         expectJson(response, 200);
         expect(WikiPageContentListSchema.parse(response.body)).toEqual([]);
       });
@@ -185,7 +194,7 @@ describe(
         const page = await wiki.createPage();
         await wiki.expectAbsent(wiki.missingSlug);
         expectError(
-          await wiki.editor.delete(wiki.pageUrl(wiki.missingSlug)),
+          await wiki.request('DELETE', wiki.pageUrl(wiki.missingSlug)),
           404,
         );
         await wiki.expectAbsent(wiki.missingSlug);
@@ -196,7 +205,12 @@ describe(
         wiki,
       }) => {
         const page = await wiki.createPage();
-        expectError(await wiki.invalid.delete(wiki.pageUrl(page.slug)), 401);
+        expectError(
+          await wiki.request('DELETE', wiki.pageUrl(page.slug), {
+            access: 'invalid',
+          }),
+          401,
+        );
         await wiki.expectSaved(page);
       });
     });
@@ -207,7 +221,7 @@ describe(
       }) => {
         const page = wiki.createdPage(await wiki.create());
         await wiki.expectSaved(page);
-        const updated = await wiki.editor.put(wiki.pageUrl(page.slug), {
+        const updated = await wiki.request('PUT', wiki.pageUrl(page.slug), {
           json: { content: wiki.updatedContent },
         });
         wiki.expectPage(updated, page, wiki.updatedContent);
@@ -227,15 +241,26 @@ describe(
       test('TC_WIKI_E2E_002: Protect a guide with a read-only API token', async ({
         wiki,
       }) => {
-        const reader = wiki.reader();
+        wiki.requireReader();
         const page = await wiki.createPage();
-        wiki.expectPage(await reader.get(wiki.pageUrl(page.slug)), page);
-        const updated = await reader.put(wiki.pageUrl(page.slug), {
+        wiki.expectPage(
+          await wiki.request('GET', wiki.pageUrl(page.slug), {
+            access: 'reader',
+          }),
+          page,
+        );
+        const updated = await wiki.request('PUT', wiki.pageUrl(page.slug), {
+          access: 'reader',
           json: { content: 'Reader change' },
         });
         expectError(updated, 403);
         await wiki.expectSaved(page);
-        expectError(await reader.delete(wiki.pageUrl(page.slug)), 403);
+        expectError(
+          await wiki.request('DELETE', wiki.pageUrl(page.slug), {
+            access: 'reader',
+          }),
+          403,
+        );
         await wiki.expectSaved(page);
       });
     });
