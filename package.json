@@ -11,8 +11,6 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run tests/unit --coverage",
-    "test:performance:multimedia": "bun run scripts/run-multimedia-performance.ts",
-    "test:reports": "bun run scripts/generate-test-reports.ts",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:watch": "vitest",
