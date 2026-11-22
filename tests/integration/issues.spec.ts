@@ -173,7 +173,7 @@ describe('GitLab REST API v4 — Project Issues Architecture Test Suite (Yeraldi
   describe('Activity #4: Data-Driven Boundary Testing via CSV Dataset', () => {
     for (const row of csvDatasets) {
       it(`${row.case_id}: CSV Boundary Row [${row.validation_rule}]`, async () => {
-        logTestStep(row.case_id, `Validating CSV record: ${row.title || '<empty>'}`);
+        logTestStep(row.case_id, 'Validating CSV record');
 
         if (row.expected_status === 201) {
           const mockResponse = {

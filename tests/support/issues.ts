@@ -111,7 +111,7 @@ export class IssueContext {
     payload: Record<string, unknown>,
     testCase = 'TC_ISSUE_CREATE',
   ): Promise<Response<Issue | Record<string, unknown>>> {
-    logTestStep(testCase, 'Creating issue via Singleton RequestManager', { payload });
+    logTestStep(testCase, 'Creating issue via Singleton RequestManager');
     const response = await requestManager.request<Issue>('POST', `projects/${this.projectId}/issues`, {
       client: this.reporterClient,
       json: payload,
@@ -141,7 +141,7 @@ export class IssueContext {
     payload: Record<string, unknown>,
     testCase = 'TC_ISSUE_UPDATE',
   ): Promise<Response<Issue | Record<string, unknown>>> {
-    logTestStep(testCase, `Updating issue iid=${iid} via Singleton RequestManager`, { payload });
+    logTestStep(testCase, `Updating issue iid=${iid} via Singleton RequestManager`);
     return requestManager.request<Issue>('PUT', `projects/${this.projectId}/issues/${iid}`, {
       client: this.reporterClient,
       json: payload,
@@ -173,9 +173,8 @@ export class IssueContext {
           client: this.ownerClient,
           testCase,
         });
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        logTestStep(testCase, `Teardown note: issue ${iid} cleanup skipped or already removed`, { error: msg });
+      } catch {
+        logTestStep(testCase, `Could not confirm cleanup for issue ${iid}`);
       } finally {
         this.ownedIssueIids.delete(iid);
       }

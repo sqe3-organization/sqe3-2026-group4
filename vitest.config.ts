@@ -10,6 +10,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    globalSetup: ["./tests/setup/log-run.ts"],
     setupFiles: ["./tests/setup/load-env.ts"],
   },
 });

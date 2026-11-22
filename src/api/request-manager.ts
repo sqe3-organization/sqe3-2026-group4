@@ -1,7 +1,13 @@
 import { performance } from 'node:perf_hooks';
-import type { Got, OptionsInit, Response } from 'got';
+import {
+  HTTPError,
+  RequestError,
+  type Got,
+  type OptionsInit,
+  type Response,
+} from 'got';
 import { createGitLabClient } from './client.ts';
-import { logApiTransaction } from '../utils/logger.ts';
+import { logApiTransaction, logRequestFailure } from '../utils/logger.ts';
 
 type RequestOptions = Omit<
   OptionsInit,
@@ -49,37 +55,39 @@ export class RequestManager {
     };
 
     const startTime = performance.now();
+    const metadata = () => ({
+      method,
+      testCase,
+      durationMs: Math.round(performance.now() - startTime),
+    });
+    let response: Response<T> | Response<string>;
     try {
-      let response: Response<T> | Response<string>;
-      if (responseType === 'text') {
-        response = await client(endpoint, { ...request, responseType });
+      response =
+        responseType === 'text'
+          ? await client(endpoint, { ...request, responseType })
+          : await client<T>(endpoint, { ...request, responseType });
+    } catch (error) {
+      if (error instanceof HTTPError && error.response) {
+        logApiTransaction({
+          ...metadata(),
+          statusCode: error.response.statusCode,
+        });
       } else {
-        response = await client<T>(endpoint, { ...request, responseType });
+        const requestError = error instanceof RequestError ? error : undefined;
+        const code = requestError?.code;
+        logRequestFailure({
+          ...metadata(),
+          statusCode: requestError?.response?.statusCode,
+          errorCode:
+            code && /^[A-Z][A-Z0-9_]{1,39}$/.test(code)
+              ? code
+              : 'REQUEST_ERROR',
+        });
       }
-
-      const durationMs = Math.round(performance.now() - startTime);
-      logApiTransaction({
-        method,
-        url: endpoint,
-        statusCode: response.statusCode,
-        durationMs,
-        testCase,
-      });
-
-      return response;
-    } catch (err: unknown) {
-      const durationMs = Math.round(performance.now() - startTime);
-      const errMsg = err instanceof Error ? err.message : String(err);
-      logApiTransaction({
-        method,
-        url: endpoint,
-        statusCode: 500,
-        durationMs,
-        testCase,
-        error: errMsg,
-      });
-      throw err;
+      throw error;
     }
+    logApiTransaction({ ...metadata(), statusCode: response.statusCode });
+    return response;
   }
 }
 
