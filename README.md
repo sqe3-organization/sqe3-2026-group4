@@ -12,7 +12,7 @@ bun run src/index.ts
 Run `bun run lint` before opening a pull request. It checks the code with Oxlint.
 
 Tests use Vitest on Node.js (version in `.nvmrc`): `bun run test`.
-For coverage or the test UI, use `bun run test:coverage` or `bun run test:ui`.
+Use `bun run test:ui` to open the Vitest UI.
 
 `GITLAB_RETRY_LIMIT` sets the HTTP retry limit and defaults to `0`.
 
@@ -30,3 +30,23 @@ creates unique pages and cleans up its own fixtures. Avoid other Wiki writers
 during the full-list integrity check. Cleanup failures report slugs for recovery.
 `TC_WIKI_PUT_002` checks the L2 empty-update no-op; `TC_WIKI_E2E_002` checks
 read-only token scope rather than different project roles.
+
+## Test logs and reports
+
+Vitest records logs automatically when a test uses the shared request manager
+or logs a test step. When a run emits events, Vitest prints the path and saves
+three files together under `logs/run-<id>/`:
+
+- `execution.jsonl` contains the individual Pino events.
+- `execution-report.json` and `execution-report.md` summarize the run.
+
+Use `bun run report:logs` to regenerate the latest report. To read events in
+the terminal or regenerate a specific report, use the path printed by Vitest:
+
+```sh
+bun run logs:pretty < 'logs/run-<id>/execution.jsonl'
+bun run report:logs 'logs/run-<id>/execution.jsonl'
+```
+
+`LOG_OUTPUT_DIR` changes the output directory and `LOG_LEVEL` changes the
+minimum log level. The defaults are `logs/` and `info`.

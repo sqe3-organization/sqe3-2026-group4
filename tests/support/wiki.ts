@@ -50,17 +50,18 @@ type WikiTextOptions = WikiRequestOptions & { responseType: 'text' };
 type WikiJsonOptions = WikiRequestOptions & { responseType?: 'json' };
 
 class WikiSession {
+  private readonly caseId: string;
   private readonly editor: Got;
   private readonly root: string;
   private readonly project: string;
   private readonly editorToken: string;
-  readonly title: string;
-  readonly missingSlug: string;
+  private readonly runId = randomUUID();
   readonly initialContent = 'Initial guide';
   readonly updatedContent = 'Updated guide';
   private readonly ownedSlugs = new Set<string>();
 
   constructor(caseId: string) {
+    this.caseId = caseId;
     this.project = projectId(
       process.env.GITLAB_WIKI_PROJECT_ID ?? process.env.GITLAB_PROJECT_ID,
       'GITLAB_WIKI_PROJECT_ID',
@@ -73,9 +74,14 @@ class WikiSession {
     );
     this.editor = this.client(this.editorToken);
     this.root = `projects/${this.project}/wikis`;
-    const runId = randomUUID();
-    this.title = `sqe3-code-${caseId.toLowerCase()}-${runId}`;
-    this.missingSlug = `absent-${runId}`;
+  }
+
+  get title(): string {
+    return `sqe3-code-${this.caseId.toLowerCase()}-${this.runId}`;
+  }
+
+  get missingSlug(): string {
+    return `absent-${this.runId}`;
   }
 
   private client(token: string): Got {
@@ -136,6 +142,7 @@ class WikiSession {
       return requestManager.request(method, endpoint, {
         ...requestOptions,
         client,
+        testCase: this.caseId,
         responseType,
       });
     }
@@ -143,6 +150,7 @@ class WikiSession {
     return requestManager.request(method, endpoint, {
       ...requestOptions,
       client,
+      testCase: this.caseId,
       responseType,
     });
   }
@@ -222,12 +230,16 @@ class WikiSession {
     return this.createdPage(response, title);
   }
 
-  createdPage(response: Response<unknown>, title = this.title): WikiPage {
+  createdPage(
+    response: Response<unknown>,
+    title = this.title,
+    content = this.initialContent,
+  ): WikiPage {
     expectJson(response, 201);
     const page = WikiPageSchema.parse(response.body);
     expect(page).toMatchObject({
       title: title.split('/').pop()?.replace(/-/g, ' '),
-      content: this.initialContent,
+      content,
       format: 'markdown',
     });
     expect(page.slug).toBe(title.replace(/ /g, '-'));
