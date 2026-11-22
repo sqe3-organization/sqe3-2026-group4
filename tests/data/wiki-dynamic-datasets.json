@@ -1,0 +1,47 @@
+{
+  "create": [
+    {
+      "name": "plain latin paragraph",
+      "content": "Synthetic page used to confirm that a simple paragraph round-trips unchanged."
+    },
+    {
+      "name": "headings and nested lists with latin diacritics",
+      "content": "# Résumé de l'équipe\n\n## Überblick\n\n- Élément un\n  - Sous-élément à niveau deux\n- Ñandú y pingüino\n\n1. Primero\n2. Segundo"
+    },
+    {
+      "name": "fenced code block with cyrillic and greek",
+      "content": "## Пример кода\n\nΚείμενο δοκιμής πριν από τον κώδικα.\n\n```python\ndef greet(name):\n    return f\"Привет, {name}!\"\n```\n\nТекст после блока."
+    },
+    {
+      "name": "table with cjk, japanese and korean",
+      "content": "| 语言 | 示例 |\n| --- | --- |\n| 中文 | 测试页面 |\n| 日本語 | テストページです |\n| 한국어 | 테스트 페이지 |"
+    }
+  ],
+  "update": [
+    {
+      "name": "single heading and paragraph",
+      "content": "# Revised guide\n\nThis synthetic content replaces the initial version."
+    },
+    {
+      "name": "blockquote and emphasis with arabic and hebrew",
+      "content": "> مرحبا بكم في الدليل المحدث\n\n**שלום** ו-*ברוכים הבאים* לגרסה החדשה.\n\n---\n\nInline `code` stays intact."
+    },
+    {
+      "name": "task list and links with devanagari",
+      "content": "## कार्य सूची\n\n- [x] पहला कार्य पूरा हुआ\n- [ ] दूसरा कार्य बाकी है\n\nSee [example link](https://example.com/docs) and <https://example.org>."
+    },
+    {
+      "name": "mixed scripts with emoji and thai",
+      "content": "### Mixed scripts ✅\n\n- English: updated\n- ไทย: อัปเดตแล้ว\n- Ελληνικά: ενημερώθηκε\n- Emoji: 🚀📘🌍\n\nFinal line with numbers 12345."
+    }
+  ],
+  "nested": [
+    { "name": "depth one single segment", "path": "overview" },
+    { "name": "depth two with digit segment", "path": "releases/v2026" },
+    {
+      "name": "depth three alphanumeric segments",
+      "path": "team/backend/api4"
+    },
+    { "name": "depth four deep hierarchy", "path": "docs/guides/setup/step1" }
+  ]
+}

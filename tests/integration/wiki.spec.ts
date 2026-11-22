@@ -1,5 +1,6 @@
 import { describe, expect } from 'vitest';
 import { WikiPageContentListSchema } from '@/schemas/wiki.schema.ts';
+import { wikiDatasets } from '@tests/support/wiki-datasets.ts';
 import { expectError, expectJson, test } from '@tests/support/wiki.ts';
 
 describe(
@@ -7,12 +8,19 @@ describe(
   { concurrent: false, timeout: 60_000 },
   () => {
     describe('POST', () => {
-      test('TC_WIKI_POST_001: Create a guide with valid data', async ({
-        wiki,
-      }) => {
-        const page = wiki.createdPage(await wiki.create());
-        await wiki.expectSaved(page);
-      });
+      for (const { name, content } of wikiDatasets.create) {
+        test(`TC_WIKI_POST_001: Create a guide with valid data [${name}]`, async ({
+          wiki,
+        }) => {
+          const response = await wiki.create({
+            title: wiki.title,
+            content,
+            format: 'markdown',
+          });
+          const page = wiki.createdPage(response, wiki.title, content);
+          await wiki.expectSaved(page, content);
+        });
+      }
 
       test('TC_WIKI_POST_002: Reject creation without a title', async ({
         wiki,
@@ -68,16 +76,16 @@ describe(
     });
 
     describe('PUT', () => {
-      test('TC_WIKI_PUT_001: Update only a guide’s content', async ({
-        wiki,
-      }) => {
-        const page = await wiki.createPage();
-        const response = await wiki.request('PUT', wiki.pageUrl(page.slug), {
-          json: { content: wiki.updatedContent },
+      for (const { name, content } of wikiDatasets.update) {
+        test(`TC_WIKI_PUT_001: Update only a guide’s content [${name}]`, async ({
+          wiki,
+        }) => {
+          const page = await wiki.createPage();
+          const response = await wiki.update(page.slug, { content });
+          wiki.expectPage(response, page, content);
+          await wiki.expectSaved(page, content);
         });
-        wiki.expectPage(response, page, wiki.updatedContent);
-        await wiki.expectSaved(page, wiki.updatedContent);
-      });
+      }
 
       test('TC_WIKI_PUT_002: Preserve a page when updating with an empty body', async ({
         wiki,
@@ -148,22 +156,22 @@ describe(
         );
       });
 
-      test('TC_WIKI_GET_004: Retrieve a guide at a nested path', async ({
-        wiki,
-      }) => {
-        const title = `manual-${wiki.title}/installation`;
-        const page = wiki.createdPage(
-          await wiki.create({
+      for (const { name, path } of wikiDatasets.nested) {
+        test(`TC_WIKI_GET_004: Retrieve a guide at a nested path [${name}]`, async ({
+          wiki,
+        }) => {
+          const title = `manual-${wiki.title}/${path}`;
+          const page = wiki.createdPage(
+            await wiki.create({
+              title,
+              content: wiki.initialContent,
+              format: 'markdown',
+            }),
             title,
-            content: wiki.initialContent,
-            format: 'markdown',
-          }),
-          title,
-        );
-        expect(page.slug).toContain('/');
-        expect(page.title).toBe('installation');
-        await wiki.expectSaved(page);
-      });
+          );
+          await wiki.expectSaved(page);
+        });
+      }
 
       test('TC_WIKI_GET_005: List a wiki without pages', async ({ wiki }) => {
         const root = wiki.emptyRoot();
