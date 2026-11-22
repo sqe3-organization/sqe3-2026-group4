@@ -10,6 +10,7 @@ export const IssueSchema = z.object({
   created_at: z.string(),
   updated_at: z.string().optional(),
   closed_at: z.string().nullable().optional(),
+  confidential: z.boolean().optional(),
   labels: z.array(z.string()),
   author: z.object({
     id: z.number(),

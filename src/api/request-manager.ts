@@ -1,10 +1,12 @@
+import { performance } from 'node:perf_hooks';
 import type { Got, OptionsInit, Response } from 'got';
 import { createGitLabClient } from './client.ts';
+import { logApiTransaction } from '../utils/logger.ts';
 
 type RequestOptions = Omit<
   OptionsInit,
   'method' | 'responseType' | 'resolveBodyOnly' | 'isStream'
-> & { client?: Got };
+> & { client?: Got; testCase?: string };
 
 export class RequestManager {
   private static instance: RequestManager | undefined;
@@ -33,6 +35,7 @@ export class RequestManager {
     {
       client = createGitLabClient(),
       responseType = 'json',
+      testCase,
       ...options
     }: RequestOptions & {
       responseType?: 'json' | 'text';
@@ -45,11 +48,38 @@ export class RequestManager {
       isStream: false as const,
     };
 
-    if (responseType === 'text') {
-      return client(endpoint, { ...request, responseType });
-    }
+    const startTime = performance.now();
+    try {
+      let response: Response<T> | Response<string>;
+      if (responseType === 'text') {
+        response = await client(endpoint, { ...request, responseType });
+      } else {
+        response = await client<T>(endpoint, { ...request, responseType });
+      }
 
-    return client<T>(endpoint, { ...request, responseType });
+      const durationMs = Math.round(performance.now() - startTime);
+      logApiTransaction({
+        method,
+        url: endpoint,
+        statusCode: response.statusCode,
+        durationMs,
+        testCase,
+      });
+
+      return response;
+    } catch (err: unknown) {
+      const durationMs = Math.round(performance.now() - startTime);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      logApiTransaction({
+        method,
+        url: endpoint,
+        statusCode: 500,
+        durationMs,
+        testCase,
+        error: errMsg,
+      });
+      throw err;
+    }
   }
 }
 

@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "generated_by": "Claude 3.5 Sonnet",
+    "generation_date": "2026-11-20",
+    "target_api": "GitLab REST API v4 - Issues",
+    "purpose": "Dynamic data-driven validation covering boundaries, unicode, markdown, and security edge cases"
+  },
+  "positive_boundary_cases": [
+    {
+      "case_id": "DYN_POS_001",
+      "description_scenario": "Single character minimal title boundary",
+      "payload": {
+        "title": "A",
+        "description": "Valid single-character issue title testing minimal length constraint"
+      },
+      "expected_status": 201
+    },
+    {
+      "case_id": "DYN_POS_002",
+      "description_scenario": "Exact 255-character maximum length title boundary",
+      "payload": {
+        "title": "Issue with exactly two hundred and fifty five characters to verify the upper boundary constraint of the GitLab API v4 title column without triggering silent truncation or database column overflow error in the underlying PostgreSQL persistent storage layer ok",
+        "description": "Boundary length title test"
+      },
+      "expected_status": 201
+    },
+    {
+      "case_id": "DYN_POS_003",
+      "description_scenario": "Multi-byte Unicode, accented characters, and emojis",
+      "payload": {
+        "title": "🐛 Defecto crítico: Error en autenticación OAuth2 🚀 & codificación UTF-8 áéíóú ñ",
+        "description": "Verificación de persistencia y serialización de caracteres multilingües y emojis modernos."
+      },
+      "expected_status": 201
+    },
+    {
+      "case_id": "DYN_POS_004",
+      "description_scenario": "Complex Markdown payload with tables, task lists, and syntax blocks",
+      "payload": {
+        "title": "Feature request: Extended markdown support",
+        "description": "## Steps to Reproduce\n- [x] Step 1: Open dashboard\n- [ ] Step 2: Click submit\n\n```typescript\nconst token = 'glpat-xxx';\nconsole.log('Testing markdown syntax block');\n```\n\n| Column A | Column B |\n| :--- | :--- |\n| Val 1 | Val 2 |"
+      },
+      "expected_status": 201
+    },
+    {
+      "case_id": "DYN_POS_005",
+      "description_scenario": "Confidential security issue with multiple categorized labels",
+      "payload": {
+        "title": "Security vulnerability: Memory leak in worker thread",
+        "description": "Confidential report for internal triage team only.",
+        "confidential": true,
+        "labels": "security,critical,backend,triage-needed"
+      },
+      "expected_status": 201
+    }
+  ],
+  "negative_edge_cases": [
+    {
+      "case_id": "DYN_NEG_001",
+      "description_scenario": "Missing mandatory title field",
+      "payload": {
+        "description": "Payload omitting the required title attribute"
+      },
+      "expected_status": 400,
+      "expected_error": "title is missing"
+    },
+    {
+      "case_id": "DYN_NEG_002",
+      "description_scenario": "Empty string title parameter",
+      "payload": {
+        "title": "",
+        "description": "Empty string title should be rejected by server validation"
+      },
+      "expected_status": 400,
+      "expected_error": "title is empty"
+    },
+    {
+      "case_id": "DYN_NEG_003",
+      "description_scenario": "XSS script injection attempt in description",
+      "payload": {
+        "title": "XSS Payload Verification",
+        "description": "<script>alert('XSS_ATTACK_VECTOR')</script><img src=x onerror=alert(1)>"
+      },
+      "expected_status": 201,
+      "sanitization_check": true
+    },
+    {
+      "case_id": "DYN_NEG_004",
+      "description_scenario": "Title exceeding 255 character schema boundary",
+      "payload": {
+        "title": "This is an excessively long title intentionally crafted to exceed the maximum boundary constraint of two hundred and fifty-five characters enforced by the GitLab REST API v4 specification. Any string greater than 255 characters must either be truncated or rejected with bad request 400.",
+        "description": "Boundary overflow test"
+      },
+      "expected_status": 400
+    }
+  ]
+}
