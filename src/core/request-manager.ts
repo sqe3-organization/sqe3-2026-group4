@@ -7,7 +7,7 @@ import {
   type Response,
 } from 'got';
 import { createGitLabClient } from './client.ts';
-import { logApiTransaction, logRequestFailure } from '../utils/logger.ts';
+import { logApiTransaction, logRequestFailure } from './logger.ts';
 
 type RequestOptions = Omit<
   OptionsInit,

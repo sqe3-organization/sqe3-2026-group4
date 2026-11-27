@@ -7,9 +7,9 @@ import {
   resolveGitLabRetryLimit,
   resolveGitLabToken,
   type GitLabClientConfig,
-} from '../config/gitlab.ts';
+} from './env.ts';
 
-export type { GitLabClientConfig } from '../config/gitlab.ts';
+export type { GitLabClientConfig } from './env.ts';
 
 function createHeaders(
   token: string,

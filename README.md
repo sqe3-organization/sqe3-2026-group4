@@ -2,6 +2,13 @@
 
 GitLab API testing framework built with Bun and TypeScript.
 
+- `src/core/` holds the GitLab client, request manager, environment settings,
+  and logging and reporting code.
+- `src/domains/` holds endpoint builders and response schemas by feature.
+- `tests/` holds Vitest specs, fixtures, and datasets.
+
+[Framework architecture](wiki/labs/l4/architecture.md)
+
 Use Bun 1.4.4 or newer:
 
 ```sh

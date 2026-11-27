@@ -5,47 +5,58 @@
 ## Architecture
 
 ```mermaid
-flowchart LR
-  setup["Environment and Vitest setup"] --> specs["Integration specs"]
-  setup --> config["GitLab configuration"]
-  config --> client["Got client"]
-  data["Test datasets"] --> specs
-  specs -->|"Feature context and cleanup"| fixtures["Test fixtures"]
-  fixtures --> manager["Singleton RequestManager"]
-  manager --> client
-  specs -->|"Direct HTTP in Repositories"| client
-  client <-->|"HTTP"| gitlab["GitLab REST API"]
-  specs --> contracts["Vitest assertions and Zod response schemas"]
-  simulated["Simulated responses in Labels and Issues"] --> contracts
-  manager --> logger["Pino request events"]
-  logger --> runLog["Run JSONL"]
-  runLog --> reports["JSON and Markdown reports"]
+flowchart TD
+  subgraph tests["Test layer — tests/"]
+    specs["Vitest specs and assertions"]
+    fixtures["Fixtures, datasets and cleanup"]
+    specs --> fixtures
+  end
+  subgraph domains["Business layer — src/domains/"]
+    endpoints["Wiki, Issues and Repositories endpoints"]
+    schemas["Feature response schemas"]
+  end
+  subgraph core["Core layer — src/core/"]
+    manager["Singleton RequestManager"]
+    client["Got client"]
+    env["GitLab configuration"]
+    logger["Pino logger"]
+    reports["Log reports"]
+    manager --> client
+    client --> env
+    manager --> logger
+    logger --> reports
+  end
+  fixtures --> endpoints
+  specs --> endpoints
+  fixtures --> schemas
+  specs --> schemas
+  fixtures --> manager
+  specs -->|"Repositories requests"| client
+  client -->|"HTTP"| gitlab["GitLab REST API"]
 ```
 
 | Layer | Responsibility |
 | --- | --- |
-| Configuration and setup | `src/config/` resolves API settings and credentials. `tests/setup/` loads the environment and gives workers the same log path for a run. |
-| Specification | `tests/integration/` defines scenarios and asserts status codes, headers, bodies and resource state. |
-| Test support | `tests/support/` loads case data, prepares resources and handles cleanup where the feature needs it. |
-| HTTP | `src/api/` configures Got. The shared `RequestManager` sends requests with the selected client and returns the response for the spec to check. |
-| Response contracts | `src/schemas/` uses Zod to validate response bodies. |
-| Logging and reporting | `src/utils/` records request outcomes and summarizes each execution log. |
+| Test | `tests/unit/` validates the shared core. `tests/integration/` defines feature scenarios and assertions. `tests/support/` manages fixtures, data and cleanup, and `tests/setup/` prepares the environment and per-run log path. |
+| Business | `src/domains/` groups endpoint builders and Zod response schemas by feature. |
+| Core | `src/core/` configures Got, sends requests through the shared `RequestManager`, records Pino events and summarizes the execution log. |
 
-Wiki uses the shared request manager for live requests. Repositories sends HTTP requests through Got directly. Labels exercises an in-memory simulation, and Issues includes simulated responses alongside HTTP requests.
+Wiki uses the shared request manager for live requests. Repositories sends requests through the shared Got client. Labels exercises an in-memory simulation, so its domain contains response schemas. Issues combines simulated assertions with HTTP calls in its fixture.
 
 ## Folder structure
 
-```mermaid
-flowchart TD
-  Root["Project root"] --> Src["src/"]
-  Root --> Tests["tests/"]
-  Root --> Tooling[".env.example, vitest.config.ts, bunfig.toml, .oxlintrc.json"]
-  Src --> Config["config/ — GitLab defaults and environment resolution"]
-  Src --> API["api/ — Got factory and request manager"]
-  Src --> Schemas["schemas/ — response schemas"]
-  Src --> Logs["utils/ — logging and reports"]
-  Tests --> Integration["integration/ — feature specs"]
-  Tests --> Setup["setup/ — environment and run setup"]
-  Tests --> Support["support/ — fixtures and cleanup"]
-  Tests --> Data["data/ — test datasets"]
+```text
+src/
+├── core/                    # Environment, HTTP client, request manager, logs and reports
+└── domains/
+    ├── issues/              # Issue routes and schemas
+    ├── labels/              # Label schemas
+    ├── repositories/        # Repository routes and schemas
+    └── wiki/                # Wiki routes and schemas
+tests/
+├── data/
+├── integration/
+├── setup/
+├── support/
+└── unit/
 ```

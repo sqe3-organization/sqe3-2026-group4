@@ -88,7 +88,7 @@ requiring a dedicated test project and sanitized credentials.
 ### 2.2 Selected tool and label request design
 
 The selected client is **Got `16.2.0`**, already provided by the shared
-[`createGitLabClient`](../../../src/api/client.ts). It supplies the base URL,
+[`createGitLabClient`](../../../src/core/client.ts). It supplies the base URL,
 `PRIVATE-TOKEN`, JSON responses, timeout and explicit retry policy. Label create
 and update operations use the client's form option; list/retrieve operations
 use query/path parameters; delete checks the empty `204` response.
@@ -203,7 +203,7 @@ HTTP status/body contract so the assertions can run without a GitLab token.
 
 ### 5.2 Assertions and schemas
 
-[`label.schema.ts`](../../../src/schemas/label.schema.ts) defines:
+[`label.schema.ts`](../../../src/domains/labels/label.schema.ts) defines:
 
 - `LabelSchema` for identity, name, color, description, priority and archived
   state, plus optional GitLab metadata.

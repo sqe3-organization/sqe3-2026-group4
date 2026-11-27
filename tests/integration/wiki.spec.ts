@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest';
-import { WikiPageContentListSchema } from '@/schemas/wiki.schema.ts';
+import { WikiPageContentListSchema } from '@/domains/wiki/wiki.schema.ts';
 import { wikiDatasets } from '@tests/support/wiki-datasets.ts';
 import { expectError, expectJson, test } from '@tests/support/wiki.ts';
 

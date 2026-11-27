@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
-import { requestManager } from '@/api/request-manager.ts';
+import { requestManager } from '@/core/request-manager.ts';
 import {
   IssueContext,
   loadDynamicJsonDatasets,
@@ -8,8 +8,8 @@ import {
   expectValidIssue,
   expectValidIssueList,
 } from '../support/issues.ts';
-import { type Issue } from '@/schemas/issue.schema.ts';
-import { logTestStep } from '@/utils/logger.ts';
+import { type Issue } from '@/domains/issues/issue.schema.ts';
+import { logTestStep } from '@/core/logger.ts';
 
 describe('GitLab REST API v4 — Project Issues Architecture Test Suite (Yeraldin Vasquez)', () => {
   let ctx: IssueContext;

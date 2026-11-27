@@ -1,9 +1,9 @@
 import { HTTPError, Options, RequestError, type Got, type Response } from 'got';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RequestManager, requestManager } from '@/api/request-manager.ts';
-import { logApiTransaction, logRequestFailure } from '@/utils/logger.ts';
+import { RequestManager, requestManager } from '@/core/request-manager.ts';
+import { logApiTransaction, logRequestFailure } from '@/core/logger.ts';
 
-vi.mock('@/utils/logger.ts', () => ({
+vi.mock('@/core/logger.ts', () => ({
   logApiTransaction: vi.fn(),
   logRequestFailure: vi.fn(),
 }));

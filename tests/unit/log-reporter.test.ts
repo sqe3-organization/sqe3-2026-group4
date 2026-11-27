@@ -8,7 +8,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { generateExecutionReport } from '@/utils/log-reporter.ts';
+import { generateExecutionReport } from '@/core/log-reporter.ts';
 
 describe('generateExecutionReport', () => {
   let directory: string;

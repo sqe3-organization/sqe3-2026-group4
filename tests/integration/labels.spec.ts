@@ -11,7 +11,7 @@ import {
   LabelListSchema,
   LabelSchema,
   type Label,
-} from '@/schemas/label.schema.ts';
+} from '@/domains/labels/label.schema.ts';
 
 type Token = 'manager' | 'reader' | 'invalid';
 type LabelInput = {
