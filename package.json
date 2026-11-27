@@ -22,7 +22,12 @@
     "logs:pretty": "pino-pretty --colorize --translateTime SYS:standard",
     "report:logs": "bun src/core/log-reporter.ts",
     "typecheck": "bun check --no-script",
-    "check": "bun run typecheck && bun run lint && bun run test"
+    "check": "bun run typecheck && bun run lint && bun run test",
+    "test:smoke": "vitest run --tagsFilter=smoke",
+    "test:regression": "vitest run --tagsFilter=regression",
+    "test:issues": "vitest run tests/integration/issues.spec.ts",
+    "test:issues:smoke": "vitest run tests/integration/issues.spec.ts --tagsFilter=smoke",
+    "test:issues:regression": "vitest run tests/integration/issues.spec.ts --tagsFilter=regression"
   },
   "dependencies": {
     "got": "16.2.0",

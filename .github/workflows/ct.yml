@@ -43,6 +43,14 @@ jobs:
           GITLAB_TOKEN_EDITOR: ${{ secrets.GITLAB_TOKEN_EDITOR }}
           GITLAB_TOKEN_READER: ${{ secrets.GITLAB_TOKEN_READER }}
         run: bun scripts/tmp/generate-individual-test-reports.ts
+      - name: Run Issues checks
+        env:
+          GITLAB_BASE_URL: ${{ vars.GITLAB_BASE_URL }}
+          GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
+          GITLAB_TOKEN_OWNER: ${{ secrets.GITLAB_TOKEN_OWNER }}
+          GITLAB_TOKEN_REPORTER: ${{ secrets.GITLAB_TOKEN_REPORTER }}
+          GITLAB_TOKEN_GUEST: ${{ secrets.GITLAB_TOKEN_GUEST }}
+        run: bun scripts/tmp/generate-individual-test-reports.ts scripts/tmp/vitest.ct-issues.config.ts
       - name: Upload Wiki test reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
