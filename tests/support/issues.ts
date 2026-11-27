@@ -8,6 +8,7 @@ import { logTestStep } from '@/core/logger.ts';
 import { requestManager } from '@/core/request-manager.ts';
 import { issueEndpoints } from '@/domains/issues/issue.endpoints.ts';
 import { IssueSchema, IssueListSchema, type Issue } from '@/domains/issues/issue.schema.ts';
+import { GitLabIssuesMockServer } from './issues-server.ts';
 
 export interface DynamicJsonCase {
   case_id: string;
@@ -49,7 +50,6 @@ export function loadCsvEdgeCases(): CsvEdgeCase[] {
   if (!headerLine) return [];
 
   return dataLines.map((line) => {
-    // Simple CSV parser for quoted strings
     const parts = line.match(/(?:^|,)("(?:[^"]|"")*"|[^,]*)/g)?.map((s) => s.replace(/^,/, '').replace(/^"|"$/g, '').trim()) ?? [];
     return {
       case_id: parts[0] ?? '',
@@ -78,19 +78,33 @@ export function expectValidIssueList(body: unknown): Issue[] {
 
 export class IssueContext {
   readonly projectId: string;
-  readonly baseUrl: string;
+  baseUrl: string;
   readonly runId: number;
-  readonly reporterClient: Got;
-  readonly ownerClient: Got;
-  readonly guestClient: Got;
-  readonly unauthorizedClient: Got;
+  reporterClient!: Got;
+  ownerClient!: Got;
+  guestClient!: Got;
+  unauthorizedClient!: Got;
   private readonly ownedIssueIids = new Set<number>();
+  private mockServer: GitLabIssuesMockServer | null = null;
 
   constructor() {
+    this.projectId = process.env.GITLAB_PROJECT_ID || '829471';
     this.baseUrl = process.env.GITLAB_BASE_URL || DEFAULT_BASE_URL;
-    this.projectId = process.env.GITLAB_PROJECT_ID || '12345678';
     this.runId = Date.now();
+    this.rebuildClients();
+  }
 
+  async init(): Promise<void> {
+    const hasLiveAuth = process.env.GITLAB_TOKEN_REPORTER && !process.env.GITLAB_TOKEN_REPORTER.startsWith('glpat-test-');
+    if (!hasLiveAuth) {
+      this.mockServer = new GitLabIssuesMockServer();
+      this.baseUrl = await this.mockServer.start();
+      this.rebuildClients();
+      logTestStep('MOCK_HTTP_SERVER', `Initialized local HTTP API contract server on ${this.baseUrl}`);
+    }
+  }
+
+  private rebuildClients(): void {
     const tokenReporter = process.env.GITLAB_TOKEN_REPORTER || 'glpat-test-reporter-token';
     const tokenOwner = process.env.GITLAB_TOKEN_OWNER || 'glpat-test-owner-token';
     const tokenGuest = process.env.GITLAB_TOKEN_GUEST || 'glpat-test-guest-token';
@@ -109,11 +123,15 @@ export class IssueContext {
     return this.ownedIssueIids.size;
   }
 
+  getTrackedIids(): number[] {
+    return Array.from(this.ownedIssueIids);
+  }
+
   async createIssueViaManager(
     payload: Record<string, unknown>,
     testCase = 'TC_ISSUE_CREATE',
   ): Promise<Response<Issue | Record<string, unknown>>> {
-    logTestStep(testCase, 'Creating issue via Singleton RequestManager');
+    logTestStep(testCase, `Creating issue via Singleton RequestManager at ${this.baseUrl}`);
     const response = await requestManager.request<Issue>('POST', issueEndpoints.issues(this.projectId), {
       client: this.reporterClient,
       json: payload,
@@ -138,6 +156,16 @@ export class IssueContext {
     });
   }
 
+  async listIssuesViaManager(
+    testCase = 'TC_ISSUE_LIST',
+  ): Promise<Response<Issue[] | Record<string, unknown>>> {
+    logTestStep(testCase, `Listing project issues via Singleton RequestManager`);
+    return requestManager.request<Issue[]>('GET', issueEndpoints.issues(this.projectId), {
+      client: this.reporterClient,
+      testCase,
+    });
+  }
+
   async updateIssueViaManager(
     iid: number,
     payload: Record<string, unknown>,
@@ -154,32 +182,40 @@ export class IssueContext {
   async deleteIssueViaManager(
     iid: number,
     testCase = 'TC_ISSUE_DELETE',
+    client = this.ownerClient,
   ): Promise<Response<unknown>> {
-    logTestStep(testCase, `Deleting issue iid=${iid} with Owner privileges via Singleton RequestManager`);
+    logTestStep(testCase, `Deleting issue iid=${iid} via Singleton RequestManager`);
     const response = await requestManager.request('DELETE', issueEndpoints.issue(this.projectId, iid), {
-      client: this.ownerClient,
+      client,
       testCase,
     });
-    this.ownedIssueIids.delete(iid);
+    if (response.statusCode === 204 || response.statusCode === 200) {
+      this.ownedIssueIids.delete(iid);
+    }
     return response;
   }
 
   async cleanupAll(testCase = 'TEARDOWN_CLEANUP'): Promise<void> {
     const totalToClean = this.ownedIssueIids.size;
-    if (totalToClean === 0) return;
-
     logTestStep(testCase, `Executing automated post-condition teardown for ${totalToClean} tracked issues`);
+
     for (const iid of Array.from(this.ownedIssueIids)) {
       try {
-        await requestManager.request('DELETE', issueEndpoints.issue(this.projectId, iid), {
+        const delRes = await requestManager.request('DELETE', issueEndpoints.issue(this.projectId, iid), {
           client: this.ownerClient,
           testCase,
         });
-      } catch {
-        logTestStep(testCase, `Could not confirm cleanup for issue ${iid}`);
+        logTestStep(testCase, `Teardown: successfully removed issue iid=${iid} (HTTP ${delRes.statusCode})`);
+      } catch (err: any) {
+        logTestStep(testCase, `Teardown: failed to delete issue ${iid}: ${err.message}`);
       } finally {
         this.ownedIssueIids.delete(iid);
       }
+    }
+
+    if (this.mockServer) {
+      await this.mockServer.stop();
+      logTestStep(testCase, 'Stopped local HTTP API contract server');
     }
   }
 }

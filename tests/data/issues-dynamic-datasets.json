@@ -19,7 +19,7 @@
       "case_id": "DYN_POS_002",
       "description_scenario": "Exact 255-character maximum length title boundary",
       "payload": {
-        "title": "Issue with exactly two hundred and fifty five characters to verify the upper boundary constraint of the GitLab API v4 title column without triggering silent truncation or database column overflow error in the underlying PostgreSQL persistent storage layer ok",
+        "title": "Issue with exactly two hundred and fifty five characters to verify the upper boundary constraint of the GitLab API v4 title column without triggering silent truncation or database column overflow error in the underlying PostgreSQL persistent storage layer",
         "description": "Boundary length title test"
       },
       "expected_status": 201
