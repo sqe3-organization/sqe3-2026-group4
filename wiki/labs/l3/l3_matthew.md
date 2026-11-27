@@ -80,7 +80,7 @@ These observations do not establish a confirmed application defect. The no-op an
 
 ## Activity #2: API request definition
 
-The [group comparison](l3.md#activity-2) selects Got `16.2.0`. Wiki uses [createGitLabClient](../../../src/api/client.ts), creating separate editor, invalid-token and reader clients instead of maintaining a second network layer.
+The [group comparison](l3.md#activity-2) selects Got `16.2.0`. Wiki uses [createGitLabClient](../../../src/core/client.ts), creating separate editor, invalid-token and reader clients instead of maintaining a second network layer.
 
 The client supplies the base URL, JSON handling, `Accept`, `PRIVATE-TOKEN`, User-Agent and a request timeout of 10 seconds by default. HTTP errors are returned to the test for explicit assertions. `GITLAB_RETRY_LIMIT` defaults to `0`; keeping it at zero makes the integration run observe the first response.
 
@@ -124,7 +124,7 @@ Both require configured projects, Wiki access and a valid editor token.
 
 ### 5.2 Assertions and schemas
 
-[wiki.schema.ts](../../../src/schemas/wiki.schema.ts) defines page, summary, content-list and error schemas. `expectJson` checks status and media type; `expectPage` checks title, slug, format and content. For DELETE `204`, the test checks an empty body instead of parsing JSON.
+[wiki.schema.ts](../../../src/domains/wiki/wiki.schema.ts) defines page, summary, content-list and error schemas. `expectJson` checks status and media type; `expectPage` checks title, slug, format and content. For DELETE `204`, the test checks an empty body instead of parsing JSON.
 
 Response schemas validate field types at runtime. Configuration checks reject missing tokens, nonnumeric project IDs and invalid retry limits before the relevant request runs.
 

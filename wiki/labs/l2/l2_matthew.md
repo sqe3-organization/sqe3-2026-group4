@@ -42,7 +42,7 @@ The collection expects `200` for POST, GET, PUT and DELETE, and `404` when retri
 
 Import the [shared GitLab Project environment](assets/GitLab_Project.postman_environment.json) and select it for GitLab requests. The selected project ID is `88312763`. Supply `token_editor` locally and run **00 — Authorization / AUTH — Verify editor identity**, which sends `GET /user`.
 
-GitLab requests inherit the collection's `PRIVATE-TOKEN` authorization. Invalid-token cases override the header, and the reader scenario uses `token_reader` for its restricted requests. Use `api` for the editor and only `read_api` for the reader. These may be separate legacy tokens from the same account. Follow the [shared legacy token guide](l2.md#token-setup).
+GitLab requests inherit the collection's `PRIVATE-TOKEN` authorization. Invalid-token cases override the header, and the reader scenario uses `token_reader` for its restricted requests. Use `api` for the editor and only `read_api` for the reader. These may be separate legacy tokens from the same account. Follow the [shared token setup](l2.md#token-setup).
 
 ---
 
@@ -162,7 +162,7 @@ postman collection run "wiki/labs/l2/assets/matthew/GitLab_Wiki_LLTC.postman_col
 | GitLab Wiki — [Collection Runner screenshot](assets/matthew/GitLab_Wiki_LLTC_run.png) | 416 assertions passed; 0 failed, skipped or errors. One iteration took 47.481 seconds. |
 | Exported collections | Public CRUD contains 4 cases. Wiki contains 19 cases and a separate authorization probe. |
 | Wiki traceability | All 19 L1 IDs have preconditions, postconditions and cleanup. The empty-update and reader cases use the adaptations described in Activity 2. |
-| Peer review | Activity 5 is pending. |
+| Peer review | Static review of Group 3 exports completed; see [Activity 5](#activity-5). No peer collection was executed. |
 
 The screenshots show run summaries, not the complete request logs or the exact collection revision used. They do not establish that the current exports are identical to those runs.
 
@@ -178,17 +178,25 @@ Record future execution results here using the collection export in `assets/matt
 
 ### 5.1 Reviewed implementation
 
-**Team / collection:** Pending.
+**Team / collection:** Group 3 — [Column values — monday.com](assets/g3/column-values.postman_collection.json), with the [monday environment](assets/g3/monday.postman_environment.json). [Fake API — DummyJSON](assets/g3/fake-api-dummyjson.postman_collection.json) and its [environment](assets/g3/fake-api.postman_environment.json) were reviewed separately as Activity 1 practice. Other Group 3 features were not included in the supplied files.
 
-**Complexity, quantity and test types:** Pending.
+**Review method:** I inspected the payloads, scripts, variables and execution order in the exported files. I did not run the collections.
 
-**Ease of use:** Pending.
+**Complexity, quantity and test types:** The monday collection defines 20 feature cases (`TC-COLVAL-001`–`020`): 7 positive, 9 negative, 3 boundary and 1 E2E. The E2E has eight request steps. Including authorization, board/column setup and board cleanup, the export contains 33 saved requests. The cases cover invalid authentication, malformed values, nonexistent IDs, leap-day dates, special characters and an item’s lifecycle. Several scripts read the item again to check that changes were saved or that rejected updates left it unchanged. DummyJSON adds 10 practice requests covering CRUD, authentication and a follow-up check for non-persistence.
+
+**Ease of use:** The case IDs and folders make the collection easy to follow. Case descriptions include priority, preconditions and cleanup, while environment variables hold connection settings. Running individual cases still requires prior board setup, and the E2E steps share `ITEM_ID`. The collection description asks for a 4000 ms delay between requests; a short run guide would make these dependencies clearer.
 
 ### 5.2 Feedback
 
 | Case or area reviewed | Observation | Suggested improvement |
 | --- | --- | --- |
-| | | |
+| Coverage and persistence | Positive, negative and boundary folders are easy to follow. `TC-COLVAL-012` checks that a rejected mixed-column update leaves the original values intact; the E2E also reads updated and cleared values. | Keep these follow-up reads and the distinction between request success and the stored result. |
+| Setup and item IDs (`TC-COLVAL-001`, for example) | Item setup catches exceptions with `console.error` and stores `ITEM_ID` in collection variables. A failed setup can leave an ID from a previous case available. | Clear `ITEM_ID` before setup. Check the HTTP response, GraphQL errors and returned item ID; if setup fails, record a failed test and skip the main request. |
+| Cleanup | Per-case `delete_item` helpers parse JSON but do not assert deletion success. Their catch blocks only log errors. The final board cleanup has assertions, but depends on reaching that request. | Report cleanup failures as failed tests and verify the GraphQL deletion result. Attempt cleanup in `finally` and document how to remove the test board if the run stops early. |
+| Shared response checks | The collection checks that `Content-Type` exists. Its timing check is skipped when the configured limit is exceeded. | Check the expected JSON media type. State whether response time is informational or a requirement; if it is a requirement, make an exceeded limit fail an assertion. |
+| E2E and execution order | The eight E2E steps show creation, update, reads, clearing, deletion and a rejected update after deletion. Board setup and shared IDs introduce ordering dependencies. | Add a short import/run guide listing the environment, required variables, setup order and 4000 ms delay. Explain how to run one case safely. |
+| GraphQL error assertions | Negative cases inspect `errors`, sometimes `extensions.code`, and missing mutation data rather than relying only on HTTP status. Some checks also depend on message fragments. | Keep the structured error checks and prefer stable error codes when available; use message fragments only where they are needed to distinguish the scenario. |
+| A1 practice scope | DummyJSON covers CRUD and authentication, and explicitly expects a follow-up GET after creation to return `404`. This is presented as practice behavior, separate from monday coverage. | Label DummyJSON as Activity 1 practice and list the monday.com features included in the handoff. |
 
 ---
 

@@ -2,10 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Got, Response } from 'got';
 import { expect } from 'vitest';
-import { createGitLabClient } from '@/api/client.ts';
-import { requestManager } from '@/api/request-manager.ts';
-import { IssueSchema, IssueListSchema, type Issue } from '@/schemas/issue.schema.ts';
-import { logTestStep } from '@/utils/logger.ts';
+import { createGitLabClient } from '@/core/client.ts';
+import { DEFAULT_BASE_URL } from '@/core/env.ts';
+import { logTestStep } from '@/core/logger.ts';
+import { requestManager } from '@/core/request-manager.ts';
+import { issueEndpoints } from '@/domains/issues/issue.endpoints.ts';
+import { IssueSchema, IssueListSchema, type Issue } from '@/domains/issues/issue.schema.ts';
 
 export interface DynamicJsonCase {
   case_id: string;
@@ -85,7 +87,7 @@ export class IssueContext {
   private readonly ownedIssueIids = new Set<number>();
 
   constructor() {
-    this.baseUrl = process.env.GITLAB_BASE_URL || 'https://gitlab.com/api/v4';
+    this.baseUrl = process.env.GITLAB_BASE_URL || DEFAULT_BASE_URL;
     this.projectId = process.env.GITLAB_PROJECT_ID || '12345678';
     this.runId = Date.now();
 
@@ -112,7 +114,7 @@ export class IssueContext {
     testCase = 'TC_ISSUE_CREATE',
   ): Promise<Response<Issue | Record<string, unknown>>> {
     logTestStep(testCase, 'Creating issue via Singleton RequestManager');
-    const response = await requestManager.request<Issue>('POST', `projects/${this.projectId}/issues`, {
+    const response = await requestManager.request<Issue>('POST', issueEndpoints.issues(this.projectId), {
       client: this.reporterClient,
       json: payload,
       testCase,
@@ -130,7 +132,7 @@ export class IssueContext {
     testCase = 'TC_ISSUE_GET',
   ): Promise<Response<Issue | Record<string, unknown>>> {
     logTestStep(testCase, `Retrieving issue iid=${iid} via Singleton RequestManager`);
-    return requestManager.request<Issue>('GET', `projects/${this.projectId}/issues/${iid}`, {
+    return requestManager.request<Issue>('GET', issueEndpoints.issue(this.projectId, iid), {
       client: this.reporterClient,
       testCase,
     });
@@ -142,7 +144,7 @@ export class IssueContext {
     testCase = 'TC_ISSUE_UPDATE',
   ): Promise<Response<Issue | Record<string, unknown>>> {
     logTestStep(testCase, `Updating issue iid=${iid} via Singleton RequestManager`);
-    return requestManager.request<Issue>('PUT', `projects/${this.projectId}/issues/${iid}`, {
+    return requestManager.request<Issue>('PUT', issueEndpoints.issue(this.projectId, iid), {
       client: this.reporterClient,
       json: payload,
       testCase,
@@ -154,7 +156,7 @@ export class IssueContext {
     testCase = 'TC_ISSUE_DELETE',
   ): Promise<Response<unknown>> {
     logTestStep(testCase, `Deleting issue iid=${iid} with Owner privileges via Singleton RequestManager`);
-    const response = await requestManager.request('DELETE', `projects/${this.projectId}/issues/${iid}`, {
+    const response = await requestManager.request('DELETE', issueEndpoints.issue(this.projectId, iid), {
       client: this.ownerClient,
       testCase,
     });
@@ -169,7 +171,7 @@ export class IssueContext {
     logTestStep(testCase, `Executing automated post-condition teardown for ${totalToClean} tracked issues`);
     for (const iid of Array.from(this.ownedIssueIids)) {
       try {
-        await requestManager.request('DELETE', `projects/${this.projectId}/issues/${iid}`, {
+        await requestManager.request('DELETE', issueEndpoints.issue(this.projectId, iid), {
           client: this.ownerClient,
           testCase,
         });

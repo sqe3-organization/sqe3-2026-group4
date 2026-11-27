@@ -30,12 +30,12 @@ To meet software industry standards, our automation framework follows a decouple
 flowchart TD
   subgraph Configuration["Configuration & Environment Layer"]
     ENV[".env / process.env"]
-    CONF["src/config/gitlab.ts"]
+    CONF["src/core/env.ts"]
   end
 
   subgraph Client["HTTP Network & Singleton Layer"]
-    FACTORY["Got Client Factory (src/api/client.ts)"]
-    SINGLETON["RequestManager Singleton (src/api/request-manager.ts)"]
+    FACTORY["Got Client Factory (src/core/client.ts)"]
+    SINGLETON["RequestManager Singleton (src/core/request-manager.ts)"]
   end
 
   subgraph Support["Test Fixtures & Context Layer"]
@@ -44,13 +44,13 @@ flowchart TD
   end
 
   subgraph Core["Contract & Test Execution Layer"]
-    SCHEMA["Zod Response Schemas (src/schemas/issue.schema.ts)"]
+    SCHEMA["Zod Response Schemas (src/domains/issues/issue.schema.ts)"]
     SPECS["Vitest Integration Specs (tests/integration/issues.spec.ts)"]
   end
 
   subgraph Observability["Observability & Reporting Tier"]
-    LOGGER["Pino Structured Logger (src/utils/logger.ts)"]
-    REPORTER["Log Execution Reporter (src/utils/log-reporter.ts)"]
+    LOGGER["Pino Structured Logger (src/core/logger.ts)"]
+    REPORTER["Log Execution Reporter (src/core/log-reporter.ts)"]
   end
 
   ENV --> CONF
@@ -81,17 +81,15 @@ sqe3-2026-group4/
 │   ├── execution-report.json        # Aggregated machine-readable metrics
 │   └── execution-report.md          # Human-readable markdown log summary
 ├── src/
-│   ├── api/
-│   │   ├── client.ts                # Got client factory with timeout and backoff
-│   │   └── request-manager.ts       # Singleton RequestManager wrapping all HTTP calls
-│   ├── config/
-│   │   └── gitlab.ts                # Environment and configuration resolvers
-│   ├── schemas/
-│   │   ├── issue.schema.ts          # Zod contract schemas for GitLab Issues
-│   │   └── ...                      # Schemas for labels, repos, wikis
-│   └── utils/
-│       ├── logger.ts                # Pino logger with redaction and RFC 5424 levels
-│       └── log-reporter.ts          # Automated log parser and performance summary
+│   ├── core/
+│   │   ├── client.ts                # Got client factory
+│   │   ├── env.ts                   # GitLab configuration
+│   │   ├── request-manager.ts       # Singleton RequestManager
+│   │   ├── logger.ts                # Pino logger
+│   │   └── log-reporter.ts          # Execution log summary
+│   └── domains/
+│       ├── issues/                  # Issue routes and response schemas
+│       └── ...                      # Domains for labels, repositories and Wiki
 ├── tests/
 │   ├── data/
 │   │   ├── issues-dynamic-datasets.json  # GenAI dynamic JSON boundary cases
@@ -121,7 +119,7 @@ To maintain high code quality across the multi-member repository, we integrated 
 
 In high-concurrency API testing suites, creating separate HTTP client instances inside every test case causes connection exhaustion, uncontrolled event loop overhead, and divergent configurations. 
 
-To solve this, we implemented the **Singleton Pattern** in `RequestManager` (`src/api/request-manager.ts`):
+To solve this, we implemented the **Singleton Pattern** in `RequestManager` (`src/core/request-manager.ts`):
 1. **Private Constructor:** Prevents direct instantiation from outside via `new RequestManager()`.
 2. **Static Instance Holding:** Stores a single lazily-initialized reference: `private static instance: RequestManager | undefined`.
 3. **Global Access Point:** Exposes `public static getInstance(): RequestManager` and the exported convenience reference `export const requestManager = RequestManager.getInstance()`.
@@ -201,9 +199,9 @@ The team agreed on the following RFC 5424 conventions:
 - **`ERROR` (50):** Server crashes (`5xx`), schema parsing validation rejections, network dropouts.
 - **`DEBUG` (20):** Verbose request headers and query parameter traces.
 
-### 3.3 Automated Log Reporting Tool (`src/utils/log-reporter.ts`)
+### 3.3 Automated Log Reporting Tool (`src/core/log-reporter.ts`)
 
-To provide automated post-execution visibility, we developed `src/utils/log-reporter.ts`, which parses `logs/execution.log` and outputs aggregated metrics to both `logs/execution-report.json` and a console summary:
+To provide automated post-execution visibility, we developed `src/core/log-reporter.ts`, which parses `logs/execution.log` and outputs aggregated metrics to both `logs/execution-report.json` and a console summary:
 
 ![Pino Logger and Automated Report Evidence](assets/yeraldin/term_l4_logger_report.png)
 
@@ -265,12 +263,12 @@ The updated integration test suite (`tests/integration/issues.spec.ts`) was exec
 ### 5.2 Framework Layer Decoupling
 
 The framework enforces clean separation of concerns:
-1. **Config Layer (`src/config/gitlab.ts`):** Environment resolution and defaults; zero knowledge of tests or HTTP libraries.
-2. **Network Layer (`src/api/`):** Got factory client and `RequestManager` singleton handling connection pooling, retries, and headers.
-3. **Contract Layer (`src/schemas/issue.schema.ts`):** Runtime Zod schemas verifying API response payloads and data types.
+1. **Config Layer (`src/core/env.ts`):** Environment resolution and defaults; zero knowledge of tests or HTTP libraries.
+2. **Network Layer (`src/core/`):** Got factory client and `RequestManager` singleton handling connection pooling, retries, and headers.
+3. **Contract Layer (`src/domains/issues/issue.schema.ts`):** Runtime Zod schemas verifying API response payloads and data types.
 4. **Support Layer (`tests/support/issues.ts`):** Test context, data loading, lifecycle hooks, and cleanup tracking.
 5. **Specification Layer (`tests/integration/issues.spec.ts`):** BDD test assertions and business verification.
-6. **Observability Layer (`src/utils/`):** High-performance Pino logger and automated execution metrics generator.
+6. **Observability Layer (`src/core/`):** Pino logger and automated execution metrics generator.
 
 ---
 

@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
 import { describe, it, expect, beforeAll } from 'vitest';
 import type { Got, Response } from 'got';
-import { createGitLabClient } from '@/api/client.ts';
+import { createGitLabClient } from '@/core/client.ts';
+import { DEFAULT_BASE_URL } from '@/core/env.ts';
+import { repositoryEndpoints } from '@/domains/repositories/repository.endpoints.ts';
 import {
   BlobSchema,
   GitLabErrorSchema,
@@ -9,10 +11,10 @@ import {
   RepositoryTreeSchema,
   type RepositoryTree,
   type TreeEntry
-} from '@/schemas/repository.schema.ts';
+} from '@/domains/repositories/repository.schema.ts';
 
 describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
-  const baseUrl = process.env.GITLAB_BASE_URL || 'https://gitlab.com/api/v4';
+  const baseUrl = process.env.GITLAB_BASE_URL || DEFAULT_BASE_URL;
   const projectId = process.env.GITLAB_PROJECT_ID || '86160682';
   const ref = process.env.GITLAB_REPOSITORY_REF || 'bee3de554beadc2569fc232da1b807d2f0d47d72';
   const readmeBlobSha = process.env.GITLAB_README_BLOB_SHA || '38475efa6b4cd07666eacc81bafcb9d9c5b4664a';
@@ -28,8 +30,7 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
   const anonymousClient = createGitLabClient({ baseUrl, token: '', userAgent });
   const invalidTokenClient = createGitLabClient({ baseUrl, token: 'invalid-token-sqe3', userAgent });
 
-  const treeUrl = `projects/${projectId}/repository/tree`;
-  const blobsUrl = `projects/${projectId}/repository/blobs`;
+  const treeUrl = repositoryEndpoints.tree(projectId);
 
   beforeAll(() => {
     expect(token, 'Set GITLAB_TOKEN_EDITOR (or GLAB_TOKEN) in .env; these tests hit gitlab.com').not.toBe('');
@@ -152,7 +153,7 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
     });
 
     it('TC_REPO_GET_008: Should retrieve blob metadata and Base64 content with a verifiable SHA', async () => {
-      const response = await editorClient.get(`${blobsUrl}/${readmeBlobSha}`);
+      const response = await editorClient.get(repositoryEndpoints.blob(projectId, readmeBlobSha));
 
       expect(response.statusCode).toBe(200);
       expect(response.headers['content-type']).toContain('application/json');
@@ -169,7 +170,7 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
     });
 
     it('TC_REPO_GET_009: Should retrieve raw UTF-8 blob bytes with a verifiable SHA', async () => {
-      const response = await editorClient.get(`${blobsUrl}/${readmeBlobSha}/raw`, { responseType: 'text' });
+      const response = await editorClient.get(repositoryEndpoints.rawBlob(projectId, readmeBlobSha), { responseType: 'text' });
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toContain('# Laboratorio Semana 1');
@@ -190,18 +191,18 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
     });
 
     it('TC_REPO_GET_011: Should reject an unavailable blob ID and recover at a valid blob', async () => {
-      const response = await editorClient.get(`${blobsUrl}/${missingBlobSha}`);
+      const response = await editorClient.get(repositoryEndpoints.blob(projectId, missingBlobSha));
 
       expect(response.statusCode).toBe(404);
       const error = GitLabErrorSchema.parse(response.body);
       expect(typeof error.message).toBe('string');
 
-      const recovery = await editorClient.get(`${blobsUrl}/${readmeBlobSha}`);
+      const recovery = await editorClient.get(repositoryEndpoints.blob(projectId, readmeBlobSha));
       expect(recovery.statusCode).toBe(200);
     });
 
     it('TC_REPO_GET_012: Should reject raw retrieval of an unavailable blob with an error payload', async () => {
-      const response = await editorClient.get(`${blobsUrl}/${missingBlobSha}/raw`, { responseType: 'text' });
+      const response = await editorClient.get(repositoryEndpoints.rawBlob(projectId, missingBlobSha), { responseType: 'text' });
 
       expect(response.statusCode).toBe(404);
       expect(response.headers['content-type']).toContain('application/json');
@@ -211,13 +212,13 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
     });
 
     it('TC_REPO_GET_013: Should mask the private repository from anonymous reads and allow the editor', async () => {
-      const anonymous = await anonymousClient.get(`projects/${privateProjectId}/repository/tree`, {
+      const anonymous = await anonymousClient.get(repositoryEndpoints.tree(privateProjectId), {
         searchParams: { ref: privateRef }
       });
 
       expect(anonymous.statusCode).toBe(404);
 
-      const authenticated = await editorClient.get(`projects/${privateProjectId}/repository/tree`, {
+      const authenticated = await editorClient.get(repositoryEndpoints.tree(privateProjectId), {
         searchParams: { ref: privateRef }
       });
       expect(authenticated.statusCode).toBe(200);
@@ -246,13 +247,13 @@ describe('GitLab REST API v4 — Repositories LLTC (Maddock García)', () => {
       }
       const sha = readme.id;
 
-      const blobResponse = await editorClient.get(`${blobsUrl}/${sha}`);
+      const blobResponse = await editorClient.get(repositoryEndpoints.blob(projectId, sha));
       expect(blobResponse.statusCode).toBe(200);
       const blob = BlobSchema.parse(blobResponse.body);
       expect(blob.sha).toBe(sha);
       expect(blob.size).toBe(194);
 
-      const rawResponse = await editorClient.get(`${blobsUrl}/${sha}/raw`, { responseType: 'text' });
+      const rawResponse = await editorClient.get(repositoryEndpoints.rawBlob(projectId, sha), { responseType: 'text' });
       expect(rawResponse.statusCode).toBe(200);
       expect(rawResponse.body).toBe(Buffer.from(blob.content, 'base64').toString('utf8'));
 

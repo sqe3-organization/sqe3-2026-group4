@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { Got, OptionsInit, Response } from 'got';
 import { expect, test as base } from 'vitest';
-import { createGitLabClient } from '@/api/client.ts';
-import { requestManager } from '@/api/request-manager.ts';
+import { createGitLabClient } from '@/core/client.ts';
+import { requestManager } from '@/core/request-manager.ts';
+import { wikiEndpoints } from '@/domains/wiki/wiki.endpoints.ts';
 import {
   WikiErrorSchema,
   WikiPageContentListSchema,
@@ -10,7 +11,7 @@ import {
   WikiPageSchema,
   type WikiPage,
   type WikiPageSummary,
-} from '@/schemas/wiki.schema.ts';
+} from '@/domains/wiki/wiki.schema.ts';
 
 function required(value: string | undefined, name: string): string {
   if (!value?.trim())
@@ -73,7 +74,7 @@ class WikiSession {
       'GITLAB_TOKEN_EDITOR',
     );
     this.editor = this.client(this.editorToken);
-    this.root = `projects/${this.project}/wikis`;
+    this.root = wikiEndpoints.pages(this.project);
   }
 
   get title(): string {
@@ -166,11 +167,11 @@ class WikiSession {
         'The empty-wiki project must differ from the writable Wiki project.',
       );
 
-    return `projects/${emptyProject}/wikis`;
+    return wikiEndpoints.pages(emptyProject);
   }
 
   pageUrl(slug: string): string {
-    return `${this.root}/${encodeURIComponent(slug)}`;
+    return wikiEndpoints.page(this.project, slug);
   }
 
   expectPage(

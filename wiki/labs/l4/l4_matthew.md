@@ -4,7 +4,7 @@
 
 ## Activity 1 — Wiki structure
 
-The [Wiki spec](../../../tests/integration/wiki.spec.ts) defines the cases and assertions. The [WikiSession fixture](../../../tests/support/wiki.ts) prepares test data, manages request credentials and tracks pages for cleanup. The [Wiki schemas](../../../src/schemas/wiki.schema.ts) validate response bodies.
+The [Wiki spec](../../../tests/integration/wiki.spec.ts) defines the cases and assertions. The [WikiSession fixture](../../../tests/support/wiki.ts) prepares test data, manages request credentials and tracks pages for cleanup. The Wiki domain contains the [endpoint builders](../../../src/domains/wiki/wiki.endpoints.ts) and [response schemas](../../../src/domains/wiki/wiki.schema.ts).
 
 ## Activity 2 — Singleton request manager
 

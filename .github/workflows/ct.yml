@@ -1,0 +1,51 @@
+name: CT
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitlab-wiki-ct
+  cancel-in-progress: false
+
+jobs:
+  wiki:
+    if: >-
+      (github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]')) &&
+      (github.event_name != 'schedule' || vars.CT_SCHEDULE_DISABLED != 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Run Wiki checks
+        env:
+          GITLAB_BASE_URL: ${{ vars.GITLAB_BASE_URL }}
+          GITLAB_WIKI_PROJECT_ID: ${{ vars.GITLAB_WIKI_PROJECT_ID }}
+          GITLAB_WIKI_EMPTY_PROJECT_ID: ${{ vars.GITLAB_WIKI_EMPTY_PROJECT_ID }}
+          GITLAB_TOKEN_EDITOR: ${{ secrets.GITLAB_TOKEN_EDITOR }}
+          GITLAB_TOKEN_READER: ${{ secrets.GITLAB_TOKEN_READER }}
+        run: bun scripts/tmp/generate-individual-test-reports.ts
+      - name: Upload Wiki test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: wiki-ct-reports
+          path: reports/ct/

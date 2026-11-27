@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import type { TestProject } from 'vitest/node';
-import { generateExecutionReport } from '../../src/utils/log-reporter.ts';
-import { createRunLogPath } from '../../src/utils/logger.ts';
+import { generateExecutionReport } from '../../src/core/log-reporter.ts';
+import { createRunLogPath } from '../../src/core/logger.ts';
 
 declare module 'vitest' {
   interface ProvidedContext {
