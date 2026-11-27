@@ -1,0 +1,358 @@
+{
+  "info": {
+    "_postman_id": "dd14e495-5d9d-54d6-9fa6-c8b0d718c41a",
+    "name": "Fake API - DummyJSON",
+    "description": "Practice requests with dummyjson.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET / products",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-FAKE-001 List products returns the requested page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/products?limit=5&select=title,price"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Body has 5 products and pagination fields', () => {",
+                  "    pm.expect(body.products).to.be.an('array').with.lengthOf(5);",
+                  "    pm.expect(body.limit).to.eql(5);",
+                  "    pm.expect(body.total).to.be.above(0);",
+                  "});",
+                  "pm.test('Every product has id, title and price', () => {",
+                  "    body.products.forEach(p => pm.expect(p).to.include.keys('id', 'title', 'price'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-FAKE-002 Get product by id returns that product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/products/1"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Returned id is 1', () => pm.expect(body.id).to.eql(1));",
+                  "pm.test('Price is a positive number', () => pm.expect(body.price).to.be.a('number').and.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-FAKE-003 Get product that does not exist returns 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/products/99999"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Message names the missing id', () => pm.expect(pm.response.json().message).to.include('99999'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "POST / products",
+      "description": "POST and then a GET to check the data.",
+      "item": [
+        {
+          "name": "TC-FAKE-004 Add product returns the new product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{FAKE_BASE_URL}}/products/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{PRODUCT_TITLE}}\",\n  \"price\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Title matches what was sent', () => pm.expect(body.title).to.eql(pm.environment.get('PRODUCT_TITLE')));",
+                  "pm.test('A new id is generated', () => pm.expect(body.id).to.be.a('number'));",
+                  "pm.environment.set('NEW_PRODUCT_ID', body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-FAKE-005 Data integrity GET after POST shows the fake API does not persist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/products/{{NEW_PRODUCT_ID}}"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// dummyjson does not really save it",
+                  "pm.test('Status code is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PUT / products",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-FAKE-006 Update product returns the new title",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{FAKE_BASE_URL}}/products/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated from Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Title is updated', () => pm.expect(pm.response.json().title).to.eql('Updated from Postman'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DELETE / products",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-FAKE-007 Delete product marks it as deleted",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/products/1"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('isDeleted is true', () => pm.expect(body.isDeleted).to.eql(true));",
+                  "pm.test('deletedOn is a valid date', () => pm.expect(Date.parse(body.deletedOn)).to.not.be.NaN);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "POST / auth login",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-FAKE-008 Login with valid credentials returns a token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{FAKE_BASE_URL}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{FAKE_USER}}\",\n  \"password\": \"{{FAKE_PASSWORD}}\",\n  \"expiresInMins\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('accessToken is returned', () => pm.expect(body.accessToken).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('FAKE_ACCESS_TOKEN', body.accessToken);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GET / auth me",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-FAKE-009 Get current user with bearer token returns the user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/auth/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{FAKE_ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Username matches the login', () => pm.expect(pm.response.json().username).to.eql(pm.environment.get('FAKE_USER')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-FAKE-010 Get current user with an invalid token returns 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{FAKE_BASE_URL}}/auth/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid_token_123",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Message says the token is invalid', () => pm.expect(pm.response.json().message).to.match(/token/i));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const limit = Number(pm.environment.get('RESPONSE_TIME_LIMIT_MS') || 500);",
+          "const elapsed = Math.round(pm.response.responseTime);",
+          "",
+          "pm.test('Content-Type should be present', function () {",
+          "    pm.response.to.have.header('Content-Type');",
+          "});",
+          "",
+          "if (elapsed <= limit) {",
+          "    pm.test(`Response time should be less than ${limit}ms`, function () {});",
+          "} else {",
+          "    // slow responses are only noted, they don't fail the test",
+          "    pm.test.skip(`Response time was ${elapsed} ms (target ${limit} ms)`, function () {});",
+          "}"
+        ]
+      }
+    }
+  ]
+}
